@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as userController from './userController.js';
 import { protect, restrictTo } from '../../middleware/authMiddleware.js';
 import { UserRole } from '../../core/enums.js';
+import { validate } from '../../middleware/validateMiddleware.js';
+import { createUserSchema, updateUserSchema } from '../../validation/userValidation.js';
 
 const router = Router();
 
@@ -49,7 +51,7 @@ router.use(protect, restrictTo(UserRole.ADMIN));
 router
   .route('/')
   .get(userController.getAllUsers)
-  .post(userController.createUser);
+  .post(validate(createUserSchema), userController.createUser);
 
 /**
  * @swagger
@@ -97,7 +99,7 @@ router
 router
   .route('/:id')
   .get(userController.getUser)
-  .patch(userController.updateUser)
+  .patch(validate(updateUserSchema), userController.updateUser)
   .delete(userController.deleteUser);
 
 export default router;
