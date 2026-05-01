@@ -18,7 +18,7 @@ import { RootState } from '../../store';
 import { updateUser } from '../../store/slices/authSlice';
 import { updateProfile } from '../../services/auth';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/theme';
-import { updateProfileSchema, UpdateProfileFormData } from '../../utils/validation';
+import { updateProfileSchema, UpdateProfileFormData } from '../../validation/userValidation';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import CustomAlert from '../../components/CustomAlert';

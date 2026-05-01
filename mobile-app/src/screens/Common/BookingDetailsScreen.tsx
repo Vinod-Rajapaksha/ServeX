@@ -38,6 +38,7 @@ const BookingDetailsScreen = ({ route, navigation }: any) => {
     queryKey: ['booking', initialBooking._id],
     queryFn: () => getBookingById(initialBooking._id),
     initialData: initialBooking,
+    refetchInterval: 5000,
   });
 
   const [status, setStatus] = useState(booking.status);
@@ -68,7 +69,6 @@ const BookingDetailsScreen = ({ route, navigation }: any) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booking', booking._id] });
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      setReviewModalVisible(false);
       Toast.show({
         type: 'success',
         text1: 'Thank you!',
