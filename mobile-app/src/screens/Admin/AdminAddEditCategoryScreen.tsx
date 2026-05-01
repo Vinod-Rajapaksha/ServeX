@@ -20,18 +20,9 @@ import Toast from 'react-native-toast-message';
 import CustomAlert from '../../components/CustomAlert';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import * as ImagePicker from 'expo-image-picker';
 
-
-const categorySchema = z.object({
-  name: z.string().min(2, 'Category name is required'),
-  description: z.string().min(5, 'Description is required'),
-  iconName: z.string().optional(),
-  iconImage: z.string().optional(),
-});
-
-type CategoryFormData = z.infer<typeof categorySchema>;
+import { categoryFormSchema, CategoryFormData } from '../../validation/categoryValidation';
 
 const AdminAddEditCategoryScreen = ({ route, navigation }: any) => {
   const category = route.params?.category;
@@ -48,7 +39,7 @@ const AdminAddEditCategoryScreen = ({ route, navigation }: any) => {
     watch,
     formState: { errors },
   } = useForm<CategoryFormData>({
-    resolver: zodResolver(categorySchema),
+    resolver: zodResolver(categoryFormSchema),
     defaultValues: {
       name: category?.name || '',
       description: category?.description || '',
@@ -57,7 +48,7 @@ const AdminAddEditCategoryScreen = ({ route, navigation }: any) => {
     },
   });
 
-  const iconName = watch('iconName');
+  const iconName = watch('iconName') as string;
 
   const mutation = useMutation({
     mutationFn: (data: any) => isEditing ? updateCategory(category._id, data) : createCategory(data),
@@ -86,14 +77,13 @@ const AdminAddEditCategoryScreen = ({ route, navigation }: any) => {
     if (!result.canceled) {
       const base64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
       setSelectedImage(result.assets[0].uri);
-      setValue('iconImage', base64);
+      setValue('iconImage', base64 as any);
     }
   };
 
   const onSubmit = (data: CategoryFormData) => {
     mutation.mutate(data);
   };
-
 
   const icons = ['grid-outline', 'home-outline', 'car-outline', 'color-palette-outline', 'construct-outline', 'flash-outline', 'water-outline', 'shirt-outline'];
 

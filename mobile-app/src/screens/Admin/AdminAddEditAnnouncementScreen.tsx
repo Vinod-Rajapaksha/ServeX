@@ -21,20 +21,9 @@ import Toast from 'react-native-toast-message';
 import CustomAlert from '../../components/CustomAlert';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
-const announcementSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  content: z.string().min(10, 'Content must be at least 10 characters'),
-  targetAudience: z.enum(['CUSTOMER', 'PROVIDER', 'ALL']),
-  isActive: z.boolean(),
-  expiresAt: z.date().optional().nullable(),
-  image: z.string().optional(),
-});
-
-type AnnouncementFormData = z.infer<typeof announcementSchema>;
+import { announcementFormSchema, AnnouncementFormData } from '../../validation/announcementValidation';
 
 const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
   const announcement = route.params?.announcement;
@@ -52,7 +41,7 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
     watch,
     formState: { errors },
   } = useForm<AnnouncementFormData>({
-    resolver: zodResolver(announcementSchema),
+    resolver: zodResolver(announcementFormSchema),
     defaultValues: {
       title: announcement?.title || '',
       content: announcement?.content || '',
@@ -63,11 +52,11 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
     },
   });
 
-  const expiresAt = watch('expiresAt');
+  const expiresAt = watch('expiresAt') as unknown as Date | null;
   const targetAudience = watch('targetAudience');
 
   const mutation = useMutation({
-    mutationFn: (data: any) => 
+    mutationFn: (data: any) =>
       isEditing ? updateAnnouncement(announcement._id, data) : createAnnouncement(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminAnnouncements'] });
@@ -94,14 +83,14 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
     if (!result.canceled) {
       const base64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
       setSelectedImage(result.assets[0].uri);
-      setValue('image', base64);
+      setValue('image', base64 as any);
     }
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
     if (selectedDate) {
-      setValue('expiresAt', selectedDate);
+      setValue('expiresAt', selectedDate as any);
     }
   };
 
@@ -190,7 +179,7 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
                     styles.audienceChip,
                     targetAudience === item.value && styles.activeAudienceChip
                   ]}
-                  onPress={() => setValue('targetAudience', item.value)}
+                  onPress={() => setValue('targetAudience', item.value as any)}
                 >
                   <Text style={[
                     styles.audienceText,
@@ -200,10 +189,13 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
               ))}
             </View>
 
-            {/* Status and Expiry */}
-            <View style={styles.row}>
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Is Active</Text>
+            {/* Active Status Toggle */}
+            <View style={styles.statusContainer}>
+              <View style={styles.toggleRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.toggleLabel}>Active Status</Text>
+                  <Text style={styles.toggleSubtext}>Is this announcement currently visible?</Text>
+                </View>
                 <Controller
                   control={control}
                   name="isActive"
@@ -211,31 +203,37 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
                     <Switch
                       value={value}
                       onValueChange={onChange}
-                      trackColor={{ false: COLORS.border, true: COLORS.primary + '80' }}
+                      trackColor={{ false: COLORS.border, true: COLORS.primary + '40' }}
                       thumbColor={value ? COLORS.primary : COLORS.textLight}
                     />
                   )}
                 />
               </View>
-
-              <View style={styles.rowItem}>
-                <Text style={styles.label}>Expiry Date</Text>
-                <TouchableOpacity 
-                  style={styles.datePickerBtn}
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
-                  <Text style={styles.dateText}>
-                    {expiresAt ? expiresAt.toLocaleDateString() : 'No Expiry'}
-                  </Text>
-                  {expiresAt && (
-                    <TouchableOpacity onPress={() => setValue('expiresAt', null)}>
-                      <Ionicons name="close-circle" size={16} color={COLORS.error} />
-                    </TouchableOpacity>
-                  )}
-                </TouchableOpacity>
-              </View>
             </View>
+
+            {/* Expiry Date */}
+            <Text style={styles.label}>Expiry Date</Text>
+            <TouchableOpacity
+              style={styles.datePickerBtn}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={24} color={COLORS.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.dateValue}>
+                  {expiresAt && !isNaN(new Date(expiresAt).getTime()) 
+                    ? new Date(expiresAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) 
+                    : 'No Expiry Date'}
+                </Text>
+                <Text style={styles.dateSubtext}>
+                  {expiresAt ? 'Announcement will be hidden after this date' : 'Announcement will be visible indefinitely'}
+                </Text>
+              </View>
+              {expiresAt && (
+                <TouchableOpacity onPress={() => setValue('expiresAt', null as any)}>
+                  <Ionicons name="close-circle" size={20} color={COLORS.error} />
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
 
             {showDatePicker && (
               <DateTimePicker
@@ -386,28 +384,48 @@ const styles = StyleSheet.create({
   activeAudienceText: {
     color: COLORS.white,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: SPACING.md,
+  statusContainer: {
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    marginTop: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  rowItem: {
-    flex: 1,
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  toggleLabel: {
+    ...TYPOGRAPHY.h3,
+    color: COLORS.text,
+  },
+  toggleSubtext: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textLight,
+    marginTop: 2,
   },
   datePickerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
     backgroundColor: COLORS.background,
-    padding: 10,
+    padding: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  dateText: {
-    flex: 1,
-    fontSize: 12,
+  dateValue: {
+    ...TYPOGRAPHY.body,
+    fontWeight: '600',
     color: COLORS.text,
+  },
+  dateSubtext: {
+    ...TYPOGRAPHY.caption,
+    fontSize: 10,
+    color: COLORS.textLight,
+    marginTop: 2,
   },
   submitButton: {
     backgroundColor: COLORS.primary,

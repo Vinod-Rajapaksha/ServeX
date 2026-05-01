@@ -17,17 +17,33 @@ import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/them
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import CustomAlert from '../../components/CustomAlert';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { userFormSchema, UserFormData } from '../../validation/userValidation';
+import { UserRole } from '../../core/enums';
 
 const AdminAddEditUserScreen = ({ route, navigation }: any) => {
   const user = route.params?.user;
   const isEditing = !!user;
   const queryClient = useQueryClient();
 
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState(user?.role || 'USER');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      name: user?.name || '',
+      email: user?.email || '',
+      password: '',
+      role: user?.role || 'USER',
+      phone: user?.phone || '',
+      address: user?.address || '',
+      id: user?._id || '',
+    },
+  });
+
   const [alertVisible, setAlertVisible] = useState(false);
 
   const mutation = useMutation({
@@ -45,23 +61,19 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
     },
   });
 
-  const handleSubmit = () => {
-    if (!name || !email || (!isEditing && !password)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please fill in all required fields',
-      });
-      return;
+  const onFormSubmit = (data: UserFormData) => {
+    const submissionData = { ...data };
+
+    if (isEditing && !submissionData.password) {
+      delete submissionData.password;
     }
 
-    const userData: any = { name, email, role, phone };
-    if (password) userData.password = password;
+    delete submissionData.id;
 
-    mutation.mutate(userData);
+    mutation.mutate(submissionData);
   };
 
-  const roles = ['USER', 'PROVIDER', 'ADMIN'];
+  const roles = Object.values(UserRole);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -79,63 +91,122 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.form}>
             <Text style={styles.label}>Full Name *</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="e.g. John Doe"
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.name && styles.inputError]}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  placeholder="e.g. John Doe"
+                />
+              )}
             />
+            {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
 
             <Text style={styles.label}>Email Address *</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="e.g. john@example.com"
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-
-            {!isEditing && (
-              <>
-                <Text style={styles.label}>Password *</Text>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Min. 8 characters"
-                  secureTextEntry
+                  style={[styles.input, errors.email && styles.inputError]}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  placeholder="e.g. john@example.com"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
                 />
+              )}
+            />
+            {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+
+            {(true) && (
+              <>
+                <Text style={styles.label}>Password {isEditing ? '(Leave blank to keep current)' : '*'}</Text>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[styles.input, errors.password && styles.inputError]}
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      placeholder="Min. 8 characters"
+                      secureTextEntry
+                    />
+                  )}
+                />
+                {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
               </>
             )}
 
             <Text style={styles.label}>Phone Number</Text>
-            <TextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="e.g. +94..."
-              keyboardType="phone-pad"
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.phone && styles.inputError]}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  placeholder="e.g. 07xxxxxxxx"
+                  keyboardType="phone-pad"
+                />
+              )}
             />
+            {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
+
+            <Text style={styles.label}>Address *</Text>
+            <Controller
+              control={control}
+              name="address"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.address && styles.inputError]}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  placeholder="e.g. 123 Main St, Colombo"
+                  multiline
+                  numberOfLines={2}
+                />
+              )}
+            />
+            {errors.address && <Text style={styles.errorText}>{errors.address.message}</Text>}
 
             <Text style={styles.label}>User Role</Text>
             <View style={styles.roleContainer}>
-              {roles.map((r) => (
-                <TouchableOpacity
-                  key={r}
-                  style={[styles.roleChip, role === r && styles.activeRoleChip]}
-                  onPress={() => setRole(r)}
-                >
-                  <Text style={[styles.roleChipText, role === r && styles.activeRoleChipText]}>
-                    {r}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              <Controller
+                control={control}
+                name="role"
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    {roles.map((r) => (
+                      <TouchableOpacity
+                        key={r}
+                        style={[styles.roleChip, value === r && styles.activeRoleChip]}
+                        onPress={() => onChange(r)}
+                      >
+                        <Text style={[styles.roleChipText, value === r && styles.activeRoleChipText]}>
+                          {r}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </>
+                )}
+              />
             </View>
+            {errors.role && <Text style={styles.errorText}>{errors.role.message}</Text>}
 
             <TouchableOpacity
               style={[styles.submitButton, mutation.isPending && styles.disabledButton]}
-              onPress={handleSubmit}
+              onPress={handleSubmit(onFormSubmit)}
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (
@@ -250,6 +321,14 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: COLORS.white,
     ...TYPOGRAPHY.h3,
+  },
+  errorText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.error,
+    marginTop: 4,
+  },
+  inputError: {
+    borderColor: COLORS.error,
   },
 });
 

@@ -21,7 +21,7 @@ const AdminAnnouncementsScreen = ({ navigation }: any) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState(false);
 
-  const { data: announcements, isLoading } = useQuery({
+  const { data: announcements, isLoading, refetch } = useQuery({
     queryKey: ['adminAnnouncements'],
     queryFn: getAnnouncements,
   });
@@ -73,13 +73,13 @@ const AdminAnnouncementsScreen = ({ navigation }: any) => {
           </View>
         </View>
         <Text style={styles.cardDesc} numberOfLines={2}>{item.content}</Text>
-        
+
         <View style={styles.cardFooter}>
           <View style={styles.targetInfo}>
             <Ionicons name="people-outline" size={14} color={COLORS.textLight} />
             <Text style={styles.targetText}>{item.targetAudience}</Text>
           </View>
-          
+
           <View style={styles.actionButtons}>
             <TouchableOpacity
               style={styles.actionButton}
@@ -102,16 +102,7 @@ const AdminAnnouncementsScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Announcements</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AdminAddEditAnnouncement')}
-        >
-          <Ionicons name="add" size={28} color={COLORS.white} />
-        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -122,6 +113,8 @@ const AdminAnnouncementsScreen = ({ navigation }: any) => {
           renderItem={renderAnnouncementItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
+          onRefresh={refetch}
+          refreshing={isLoading && !!announcements}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="megaphone-outline" size={60} color={COLORS.border} />
@@ -140,6 +133,14 @@ const AdminAnnouncementsScreen = ({ navigation }: any) => {
         onConfirm={confirmDelete}
         onCancel={() => setAlertVisible(false)}
       />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('AdminAddEditAnnouncement')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={32} color={COLORS.white} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -165,13 +166,21 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.h2,
     color: COLORS.text,
   },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  fab: {
+    position: 'absolute',
+    bottom: SPACING.lg,
+    right: SPACING.xl,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
   listContent: {
     padding: SPACING.md,

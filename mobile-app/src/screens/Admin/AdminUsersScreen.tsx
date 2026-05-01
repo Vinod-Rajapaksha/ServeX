@@ -22,7 +22,7 @@ const AdminUsersScreen = ({ navigation }: any) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState(false);
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, refetch } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: getAllUsers,
   });
@@ -80,12 +80,14 @@ const AdminUsersScreen = ({ navigation }: any) => {
         >
           <Ionicons name="create-outline" size={22} color={COLORS.primary} />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.actionButton}
-          onPress={() => handleDeletePress(item._id)}
-        >
-          <Ionicons name="trash-outline" size={22} color={COLORS.error} />
-        </TouchableOpacity>
+        {item.role !== 'ADMIN' && (
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => handleDeletePress(item._id)}
+          >
+            <Ionicons name="trash-outline" size={22} color={COLORS.error} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -102,12 +104,6 @@ const AdminUsersScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>User Management</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AdminAddEditUser')}
-        >
-          <Ionicons name="person-add" size={24} color={COLORS.white} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.searchBar}>
@@ -128,6 +124,8 @@ const AdminUsersScreen = ({ navigation }: any) => {
           renderItem={renderUserItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
+          onRefresh={refetch}
+          refreshing={isLoading && !!users}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No users found</Text>
@@ -145,6 +143,14 @@ const AdminUsersScreen = ({ navigation }: any) => {
         onConfirm={confirmDelete}
         onCancel={() => setAlertVisible(false)}
       />
+
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => navigation.navigate('AdminAddEditUser')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="person-add" size={30} color={COLORS.white} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -167,13 +173,21 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.h2,
     color: COLORS.text,
   },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  fab: {
+    position: 'absolute',
+    bottom: SPACING.lg,
+    right: SPACING.xl,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
   searchBar: {
     flexDirection: 'row',

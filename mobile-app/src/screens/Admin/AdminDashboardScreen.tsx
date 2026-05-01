@@ -5,8 +5,9 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
   Dimensions,
+  RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -16,10 +17,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-const AdminDashboardScreen = () => {
+const AdminDashboardScreen = ({ navigation }: any) => {
   const { data: stats, isLoading, refetch } = useQuery({
     queryKey: ['adminStats'],
     queryFn: getStats,
+    refetchInterval: 5000,
   });
 
   if (isLoading) {
@@ -39,19 +41,25 @@ const AdminDashboardScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Admin Dashboard</Text>
-            <Text style={styles.subtitle}>System Overview</Text>
-          </View>
-          <TouchableOpacity onPress={() => refetch()} style={styles.refreshButton}>
-            <Ionicons name="refresh" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Admin Dashboard</Text>
+          <Text style={styles.subtitle}>System Overview</Text>
         </View>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading && !!stats}
+            onRefresh={refetch}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
 
         <View style={styles.statsGrid}>
           {statCards.map((stat, index) => (
@@ -66,13 +74,18 @@ const AdminDashboardScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent Activity</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('RecentActivity')}>
+              <Text style={styles.seeAll}>See All</Text>
+            </TouchableOpacity>
+          </View>
           {stats?.recentBookings?.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyText}>No recent bookings</Text>
             </View>
           ) : (
-            stats?.recentBookings?.map((booking: any) => (
+            stats?.recentBookings?.slice(0, 5).map((booking: any) => (
               <View key={booking._id} style={styles.activityCard}>
                 <View style={styles.activityIcon}>
                   <Ionicons name="receipt-outline" size={24} color={COLORS.textLight} />
@@ -86,7 +99,7 @@ const AdminDashboardScreen = () => {
             ))
           )}
         </View>
-        
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
@@ -105,7 +118,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   greeting: {
     ...TYPOGRAPHY.h1,
@@ -165,7 +181,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...TYPOGRAPHY.h3,
     color: COLORS.text,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: SPACING.md,
+  },
+  seeAll: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.primary,
+    fontWeight: 'bold',
   },
   activityCard: {
     flexDirection: 'row',
