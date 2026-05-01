@@ -36,6 +36,7 @@ const OpenRequestsScreen = () => {
   const { data: requests, isLoading, refetch } = useQuery({
     queryKey: ['openRequests'],
     queryFn: getOpenRequests,
+    refetchInterval: 5000,
   });
 
   const bidMutation = useMutation({

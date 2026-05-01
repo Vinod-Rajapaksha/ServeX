@@ -21,7 +21,7 @@ import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/them
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import CustomAlert from '../../components/CustomAlert';
-import { serviceSchema, ServiceFormData } from '../../utils/validation';
+import { serviceSchema, ServiceFormData } from '../../validation/serviceValidation';
 
 const PRICE_UNITS = ['Hour', 'Day', 'Week', 'Month', 'Year'];
 

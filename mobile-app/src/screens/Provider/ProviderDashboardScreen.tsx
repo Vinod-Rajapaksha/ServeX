@@ -29,6 +29,7 @@ const ProviderDashboardScreen = ({ navigation }: any) => {
   const { data: bookings, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['providerBookings'],
     queryFn: getMyBookings,
+    refetchInterval: 5000,
   });
 
   const onRefresh = async () => {
@@ -36,8 +37,10 @@ const ProviderDashboardScreen = ({ navigation }: any) => {
   };
 
 
-  const totalEarnings = bookings?.reduce((acc: number, b: any) => 
+  const totalEarnings = bookings?.reduce((acc: number, b: any) =>
     b.status === 'COMPLETED' ? acc + (b.totalPrice || 0) : acc, 0) || 0;
+
+  const pendingJobs = bookings?.filter((b: any) => b.status === 'PENDING').slice(0, 3) || [];
 
   const stats = [
     { label: 'Total Earnings', value: `Rs. ${totalEarnings}`, icon: 'cash-outline', color: COLORS.success },
@@ -47,22 +50,23 @@ const ProviderDashboardScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>Welcome back,</Text>
+          <Text style={styles.providerName}>{user?.name}</Text>
+        </View>
+        <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
+          <Ionicons name="person-circle-outline" size={40} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} colors={[COLORS.primary]} />
         }
       >
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Welcome back,</Text>
-            <Text style={styles.providerName}>{user?.name}</Text>
-          </View>
-          <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
-            <Ionicons name="person-circle-outline" size={40} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
 
         {announcements && announcements.length > 0 && (
           <AnnouncementSlider data={announcements} />
@@ -91,11 +95,15 @@ const ProviderDashboardScreen = ({ navigation }: any) => {
 
           {isLoading ? (
             <ActivityIndicator color={COLORS.primary} />
-          ) : bookings?.length === 0 ? (
-            <Text style={styles.emptyText}>No upcoming jobs found.</Text>
+          ) : pendingJobs.length === 0 ? (
+            <Text style={styles.emptyText}>No pending jobs found.</Text>
           ) : (
-            bookings?.slice(0, 3).map((booking: any) => (
-              <View key={booking._id} style={styles.jobCard}>
+            pendingJobs.map((booking: any) => (
+              <TouchableOpacity 
+                key={booking._id} 
+                style={styles.jobCard}
+                onPress={() => navigation.navigate('BookingDetails', { bookingId: booking._id, booking })}
+              >
                 <View style={styles.jobInfo}>
                   <Text style={styles.jobTitle}>{booking.serviceId?.title}</Text>
                   <Text style={styles.clientName}>Client: {booking.userId?.name}</Text>
@@ -103,15 +111,15 @@ const ProviderDashboardScreen = ({ navigation }: any) => {
                     {new Date(booking.bookingDate).toLocaleDateString()} at {new Date(booking.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </View>
-                <TouchableOpacity style={styles.detailsButton}>
+                <View style={styles.detailsButton}>
                   <Ionicons name="chevron-forward" size={24} color={COLORS.textLight} />
-                </TouchableOpacity>
-              </View>
+                </View>
+              </TouchableOpacity>
             ))
           )}
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.manageButton}
           onPress={() => navigation.navigate('ManageServices')}
         >
@@ -129,13 +137,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   content: {
-    padding: SPACING.lg,
+    paddingVertical: SPACING.xs,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    padding: SPACING.lg,
+    backgroundColor: COLORS.background,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border + '50',
   },
   greeting: {
     ...TYPOGRAPHY.body,
@@ -152,6 +163,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
   },
   statCard: {
     backgroundColor: COLORS.surface,
@@ -184,6 +196,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -241,6 +254,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     borderRadius: BORDER_RADIUS.lg,
     marginTop: SPACING.md,
+    marginHorizontal: SPACING.lg,
   },
   manageButtonText: {
     color: COLORS.white,
