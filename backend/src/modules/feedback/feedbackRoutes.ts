@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import * as feedbackController from './feedbackController.js';
 import { protect } from '../../middleware/authMiddleware.js';
+import { validate } from '../../middleware/validateMiddleware.js';
+import { createFeedbackSchema, updateFeedbackSchema } from '../../validation/feedbackValidation.js';
 
 const router = Router();
 
@@ -73,8 +75,8 @@ router.use(protect);
  *       201:
  *         description: Feedback added successfully
  */
-router.post('/', feedbackController.create);
-router.patch('/:id', feedbackController.update);
+router.post('/', validate(createFeedbackSchema), feedbackController.create);
+router.patch('/:id', validate(updateFeedbackSchema), feedbackController.update);
 router.delete('/:id', feedbackController.remove);
 
 
