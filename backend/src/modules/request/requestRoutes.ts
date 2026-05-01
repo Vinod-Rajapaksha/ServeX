@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as requestController from './requestController.js';
 import { protect, restrictTo } from '../../middleware/authMiddleware.js';
 import { UserRole } from '../../core/enums.js';
+import { validate } from '../../middleware/validateMiddleware.js';
+import { createRequestSchema, acceptRequestSchema, placeBidSchema } from '../../validation/requestValidation.js';
 
 const router = Router();
 
@@ -37,7 +39,7 @@ router.use(protect);
  *       201:
  *         description: Request created successfully
  */
-router.post('/', requestController.create);
+router.post('/', validate(createRequestSchema), requestController.create);
 
 /**
  * @swagger
@@ -78,7 +80,7 @@ router.get('/open', restrictTo(UserRole.PROVIDER), requestController.getOpen);
  *             properties:
  *               price: { type: number }
  */
-router.patch('/:id/accept', restrictTo(UserRole.PROVIDER), requestController.accept);
+router.patch('/:id/accept', restrictTo(UserRole.PROVIDER), validate(acceptRequestSchema), requestController.accept);
 
 /**
  * @swagger
@@ -109,7 +111,7 @@ router.patch('/:id/status', restrictTo(UserRole.ADMIN), requestController.update
  *     summary: Place a bid on a request (Providers only)
  *     tags: [Requests]
  */
-router.post('/:id/bids', restrictTo(UserRole.PROVIDER), requestController.placeBid);
+router.post('/:id/bids', restrictTo(UserRole.PROVIDER), validate(placeBidSchema), requestController.placeBid);
 
 /**
  * @swagger
