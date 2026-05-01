@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as announcementController from './announcementController.js';
 import { protect, restrictTo } from '../../middleware/authMiddleware.js';
 import { UserRole } from '../../core/enums.js';
+import { validate } from '../../middleware/validateMiddleware.js';
+import { createAnnouncementSchema, updateAnnouncementSchema } from '../../validation/announcementValidation.js';
 
 const router = Router();
 
@@ -61,8 +63,8 @@ router.use(protect, restrictTo(UserRole.ADMIN));
  *       201:
  *         description: Announcement created
  */
-router.post('/', announcementController.create);
-router.patch('/:id', announcementController.update);
+router.post('/', validate(createAnnouncementSchema), announcementController.create);
+router.patch('/:id', validate(updateAnnouncementSchema), announcementController.update);
 
 
 /**

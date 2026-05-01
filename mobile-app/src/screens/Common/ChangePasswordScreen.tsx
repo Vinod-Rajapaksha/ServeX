@@ -14,13 +14,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation } from '@tanstack/react-query';
 import { changePassword } from '../../services/auth';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/theme';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { changePasswordSchema, ChangePasswordFormData } from '../../validation/authValidation';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 
 const ChangePasswordScreen = ({ navigation }: any) => {
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ChangePasswordFormData>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: changePassword,
@@ -41,23 +53,11 @@ const ChangePasswordScreen = ({ navigation }: any) => {
     },
   });
 
-  const handleSubmit = () => {
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Please fill in all fields' });
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      Toast.show({ type: 'error', text1: 'Error', text2: 'Passwords do not match' });
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      Toast.show({ type: 'error', text1: 'Error', text2: 'New password must be at least 8 characters' });
-      return;
-    }
-
-    mutation.mutate({ currentPassword, newPassword });
+  const onSubmit = (data: ChangePasswordFormData) => {
+    mutation.mutate({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    });
   };
 
   return (
@@ -76,35 +76,59 @@ const ChangePasswordScreen = ({ navigation }: any) => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.form}>
             <Text style={styles.label}>Current Password</Text>
-            <TextInput
-              style={styles.input}
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-              placeholder="Enter current password"
-              secureTextEntry
+            <Controller
+              control={control}
+              name="currentPassword"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.currentPassword && styles.errorInput]}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  placeholder="Enter current password"
+                  secureTextEntry
+                />
+              )}
             />
+            {errors.currentPassword && <Text style={styles.errorText}>{errors.currentPassword.message}</Text>}
 
             <Text style={styles.label}>New Password</Text>
-            <TextInput
-              style={styles.input}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="Enter new password (min. 8 chars)"
-              secureTextEntry
+            <Controller
+              control={control}
+              name="newPassword"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.newPassword && styles.errorInput]}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  placeholder="Enter new password (min. 8 chars)"
+                  secureTextEntry
+                />
+              )}
             />
+            {errors.newPassword && <Text style={styles.errorText}>{errors.newPassword.message}</Text>}
 
             <Text style={styles.label}>Confirm New Password</Text>
-            <TextInput
-              style={styles.input}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirm new password"
-              secureTextEntry
+            <Controller
+              control={control}
+              name="confirmPassword"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={[styles.input, errors.confirmPassword && styles.errorInput]}
+                  value={value}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  placeholder="Confirm new password"
+                  secureTextEntry
+                />
+              )}
             />
+            {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>}
 
             <TouchableOpacity
               style={[styles.submitButton, mutation.isPending && styles.disabledButton]}
-              onPress={handleSubmit}
+              onPress={handleSubmit(onSubmit)}
               disabled={mutation.isPending}
             >
               {mutation.isPending ? (
@@ -166,6 +190,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     ...TYPOGRAPHY.body,
+  },
+  errorInput: {
+    borderColor: COLORS.error,
+  },
+  errorText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.error,
+    marginTop: 4,
   },
   submitButton: {
     backgroundColor: COLORS.primary,

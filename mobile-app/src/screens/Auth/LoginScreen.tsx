@@ -18,7 +18,7 @@ import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../../constants/them
 import { setCredentials } from '../../store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { login } from '../../services/auth';
-import { loginSchema, LoginFormData } from '../../utils/validation';
+import { loginSchema, LoginFormData } from '../../validation/authValidation';
 import { saveTokens } from '../../utils/storage';
 import Toast from 'react-native-toast-message';
 import CustomAlert from '../../components/CustomAlert';
@@ -70,10 +70,14 @@ const LoginScreen = ({ navigation }: any) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Image
             source={require('../../../assets/logo.png')}

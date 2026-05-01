@@ -23,7 +23,7 @@ const AdminCategoriesScreen = ({ navigation }: any) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState(false);
 
-  const { data: categories, isLoading } = useQuery({
+  const { data: categories, isLoading, refetch } = useQuery({
     queryKey: ['adminCategories'],
     queryFn: getCategories,
   });
@@ -95,12 +95,6 @@ const AdminCategoriesScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Categories</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AdminAddEditCategory')}
-        >
-          <Ionicons name="add" size={28} color={COLORS.white} />
-        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -111,6 +105,8 @@ const AdminCategoriesScreen = ({ navigation }: any) => {
           renderItem={renderCategoryItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
+          onRefresh={refetch}
+          refreshing={isLoading && !!categories}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No categories found</Text>
@@ -128,6 +124,14 @@ const AdminCategoriesScreen = ({ navigation }: any) => {
         onConfirm={confirmDelete}
         onCancel={() => setAlertVisible(false)}
       />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('AdminAddEditCategory')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={32} color={COLORS.white} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -150,13 +154,21 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.h2,
     color: COLORS.text,
   },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  fab: {
+    position: 'absolute',
+    bottom: SPACING.lg,
+    right: SPACING.xl,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
   listContent: {
     padding: SPACING.md,

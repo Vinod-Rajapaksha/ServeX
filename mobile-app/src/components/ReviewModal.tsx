@@ -12,6 +12,9 @@ import {
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { reviewSchema, ReviewFormData } from '../validation/feedbackValidation';
 
 interface ReviewModalProps {
   visible: boolean;
@@ -34,21 +37,51 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<ReviewFormData>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: {
+      rating: 0,
+      comment: '',
+    },
+  });
+
+  const rating = watch('rating');
 
   React.useEffect(() => {
-    if (initialData && visible) {
-      setRating(initialData.rating);
-      setComment(initialData.comment);
-      setImages(initialData.images || []);
-    } else if (visible) {
-      setRating(0);
-      setComment('');
-      setImages([]);
+    if (visible) {
+      setShowSuccess(false);
+      if (initialData) {
+        reset({
+          rating: initialData.rating,
+          comment: initialData.comment,
+        });
+        setImages(initialData.images || []);
+      } else {
+        reset({
+          rating: 0,
+          comment: '',
+        });
+        setImages([]);
+      }
     }
-  }, [initialData, visible]);
+  }, [initialData, visible, reset]);
+
+  React.useEffect(() => {
+    if (isSubmitting && !isLoading) {
+      setShowSuccess(true);
+      setIsSubmitting(false);
+    }
+  }, [isLoading, isSubmitting]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -59,7 +92,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
     });
 
     if (!result.canceled) {
-      const selectedImages = result.assets.map(asset => 
+      const selectedImages = result.assets.map(asset =>
         asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri
       );
       setImages([...images, ...selectedImages]);
@@ -70,100 +103,141 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
-    if (rating === 0) return;
-    onSubmit(rating, comment, images);
+  const onFormSubmit = (data: ReviewFormData) => {
+    setIsSubmitting(true);
+    onSubmit(data.rating, data.comment, images);
   };
 
   return (
     <Modal
       transparent
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{initialData ? 'Edit Review' : 'Rate & Review'}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={COLORS.text} />
-            </TouchableOpacity>
-          </View>
-
-          {serviceName && (
-            <Text style={styles.serviceNameText}>{serviceName}</Text>
-          )}
-
-          <Text style={styles.subtitle}>How was your experience?</Text>
-
-          <View style={styles.starContainer}>
-            {[1, 2, 3, 4, 5].map((star) => (
+        {showSuccess ? (
+          <View style={styles.container}>
+            <View style={styles.successContainer}>
+              <View style={styles.successIconWrapper}>
+                <Ionicons name="checkmark-circle" size={80} color={COLORS.success} />
+              </View>
+              <Text style={styles.successTitle}>{initialData ? 'Review Updated!' : 'Thank You!'}</Text>
+              <Text style={styles.successMessage}>
+                {initialData 
+                  ? 'Your review has been updated successfully.' 
+                  : 'Your feedback has been submitted successfully. It helps us provide better service to everyone.'}
+              </Text>
               <TouchableOpacity
-                key={star}
-                onPress={() => setRating(star)}
-                style={styles.starButton}
+                style={styles.doneButton}
+                onPress={onClose}
               >
-                <Ionicons
-                  name={star <= rating ? 'star' : 'star-outline'}
-                  size={40}
-                  color={star <= rating ? COLORS.warning : COLORS.border}
-                />
+                <Text style={styles.doneButtonText}>Done</Text>
               </TouchableOpacity>
-            ))}
-          </View>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Share your feedback (optional)..."
-            placeholderTextColor={COLORS.textLight}
-            multiline
-            numberOfLines={4}
-            value={comment}
-            onChangeText={setComment}
-            textAlignVertical="top"
-          />
-
-          <View style={styles.imageSection}>
-            <Text style={styles.imageLabel}>Add Photos (Optional)</Text>
-            <View style={styles.imageList}>
-              {images.map((uri, index) => (
-                <View key={index} style={styles.imageWrapper}>
-                  <Image source={{ uri }} style={styles.previewImage} />
-                  <TouchableOpacity
-                    style={styles.removeImageBtn}
-                    onPress={() => removeImage(index)}
-                  >
-                    <Ionicons name="close-circle" size={20} color={COLORS.error} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-              {images.length < 5 && (
-                <TouchableOpacity style={styles.addImageBtn} onPress={pickImage}>
-                  <Ionicons name="camera-outline" size={28} color={COLORS.primary} />
-                  <Text style={styles.addImageText}>Add</Text>
-                </TouchableOpacity>
-              )}
             </View>
           </View>
+        ) : (
+          <View style={styles.container}>
+            <View style={styles.header}>
+              <Text style={styles.title}>{initialData ? 'Edit Review' : 'Rate & Review'}</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={24} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
 
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              (rating === 0 || isLoading) && styles.disabledButton,
-            ]}
-            onPress={handleSubmit}
-            disabled={rating === 0 || isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text style={styles.submitButtonText}>
-                {initialData ? 'Update Review' : 'Submit Review'}
-              </Text>
+            {serviceName && (
+              <Text style={styles.serviceNameText}>{serviceName}</Text>
             )}
-          </TouchableOpacity>
-        </View>
+
+            <Text style={styles.subtitle}>How was your experience?</Text>
+
+            <View style={styles.starSection}>
+              <Controller
+                control={control}
+                name="rating"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.starContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <TouchableOpacity
+                        key={star}
+                        onPress={() => onChange(star)}
+                        style={styles.starButton}
+                      >
+                        <Ionicons
+                          name={star <= value ? 'star' : 'star-outline'}
+                          size={40}
+                          color={star <= value ? COLORS.warning : COLORS.border}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              />
+              {errors.rating && <Text style={styles.errorText}>{errors.rating.message}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Controller
+                control={control}
+                name="comment"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={[styles.input, errors.comment && styles.inputError]}
+                    placeholder="Share your feedback (required)..."
+                    placeholderTextColor={COLORS.textLight}
+                    multiline
+                    numberOfLines={4}
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    textAlignVertical="top"
+                  />
+                )}
+              />
+              {errors.comment && <Text style={styles.errorText}>{errors.comment.message}</Text>}
+            </View>
+
+            <View style={styles.imageSection}>
+              <Text style={styles.imageLabel}>Add Photos (Optional)</Text>
+              <View style={styles.imageList}>
+                {images.map((uri, index) => (
+                  <View key={index} style={styles.imageWrapper}>
+                    <Image source={{ uri }} style={styles.previewImage} />
+                    <TouchableOpacity
+                      style={styles.removeImageBtn}
+                      onPress={() => removeImage(index)}
+                    >
+                      <Ionicons name="close-circle" size={20} color={COLORS.error} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                {images.length < 5 && (
+                  <TouchableOpacity style={styles.addImageBtn} onPress={pickImage}>
+                    <Ionicons name="camera-outline" size={28} color={COLORS.primary} />
+                    <Text style={styles.addImageText}>Add</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                isLoading && styles.disabledButton,
+              ]}
+              onPress={handleSubmit(onFormSubmit)}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.submitButtonText}>
+                  {initialData ? 'Update Review' : 'Submit Review'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -219,9 +293,55 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     height: 100,
     ...TYPOGRAPHY.body,
-    marginBottom: SPACING.lg,
     borderWidth: 1,
     borderColor: COLORS.border,
+  },
+  inputGroup: {
+    marginBottom: SPACING.lg,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  starSection: {
+    marginBottom: SPACING.xl,
+  },
+  successContainer: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xxl,
+  },
+  successIconWrapper: {
+    marginBottom: SPACING.lg,
+  },
+  successTitle: {
+    ...TYPOGRAPHY.h1,
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  successMessage: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.textLight,
+    textAlign: 'center',
+    marginBottom: SPACING.xxl,
+    paddingHorizontal: SPACING.md,
+  },
+  doneButton: {
+    backgroundColor: COLORS.success,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.xxl,
+    borderRadius: BORDER_RADIUS.lg,
+    minWidth: 150,
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    color: COLORS.white,
+    ...TYPOGRAPHY.h3,
+    fontWeight: 'bold',
   },
   imageSection: {
     marginBottom: SPACING.xl,

@@ -1,0 +1,413 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as ImagePicker from 'expo-image-picker';
+import { createRequest } from '../../services/request';
+import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
+import { requestSchema, RequestFormData } from '../../validation/requestValidation';
+
+const PRICE_UNITS = ['Hour', 'Day', 'Week', 'Month', 'Year'];
+
+const CreateRequestScreen = ({ navigation }: any) => {
+  const queryClient = useQueryClient();
+  const [images, setImages] = useState<string[]>([]);
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<RequestFormData>({
+    resolver: zodResolver(requestSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      budget: '',
+      priceUnit: 'Hour',
+    },
+  });
+
+  const selectedPriceUnit = watch('priceUnit');
+
+  const mutation = useMutation({
+    mutationFn: createRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myRequests'] });
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Custom request posted successfully',
+      });
+      navigation.goBack();
+    },
+    onError: (error: any) => {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: error.response?.data?.message || 'Failed to post request',
+      });
+    },
+  });
+
+  const pickImages = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (!result.canceled) {
+      const selectedImages = result.assets.map(asset => `data:image/jpeg;base64,${asset.base64}`);
+      setImages([...images, ...selectedImages]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  const onSubmit = (data: RequestFormData) => {
+    mutation.mutate({
+      ...data,
+      budget: data.budget ? parseFloat(data.budget) : undefined,
+      images,
+    });
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Post Custom Request</Text>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.infoText}>
+              Describe what you need, and providers will be able to see and bid on your request.
+            </Text>
+          </View>
+
+          <View style={styles.form}>
+            {/* Image Upload Section */}
+            <Text style={styles.label}>Request Images</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageScroll}>
+              <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
+                <Ionicons name="camera-outline" size={30} color={COLORS.primary} />
+                <Text style={styles.addImageText}>Add</Text>
+              </TouchableOpacity>
+              {images.map((img, index) => (
+                <View key={index} style={styles.imageWrapper}>
+                  <Image source={{ uri: img }} style={styles.previewImage} />
+                  <TouchableOpacity style={styles.removeImageButton} onPress={() => removeImage(index)}>
+                    <Ionicons name="close-circle" size={20} color={COLORS.error} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>What do you need help with? *</Text>
+              <Controller
+                control={control}
+                name="title"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={[styles.input, errors.title && styles.inputError]}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    placeholder="e.g. Garden cleaning and weeding"
+                  />
+                )}
+              />
+              {errors.title && <Text style={styles.errorText}>{errors.title.message}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Detailed Description *</Text>
+              <Controller
+                control={control}
+                name="description"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={[styles.input, styles.textArea, errors.description && styles.inputError]}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    placeholder="Provide more details about the task..."
+                    multiline
+                    numberOfLines={4}
+                    textAlignVertical="top"
+                  />
+                )}
+              />
+              {errors.description && <Text style={styles.errorText}>{errors.description.message}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Approximate Budget (Optional)</Text>
+              <View style={styles.budgetRow}>
+                <View style={styles.budgetInputContainer}>
+                  <Text style={styles.currencyPrefix}>Rs.</Text>
+                  <Controller
+                    control={control}
+                    name="budget"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        style={styles.budgetInput}
+                        onBlur={onBlur}
+                        onChangeText={onChange}
+                        value={value}
+                        placeholder="0.00"
+                        keyboardType="numeric"
+                      />
+                    )}
+                  />
+                </View>
+                <View style={styles.unitSelector}>
+                  {PRICE_UNITS.map((unit) => (
+                    <TouchableOpacity
+                      key={unit}
+                      style={[
+                        styles.unitChip,
+                        selectedPriceUnit === unit && styles.activeUnitChip,
+                      ]}
+                      onPress={() => setValue('priceUnit', unit as any)}
+                    >
+                      <Text style={[
+                        styles.unitChipText,
+                        selectedPriceUnit === unit && styles.activeUnitChipText
+                      ]}>
+                        Per {unit}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              {errors.budget && <Text style={styles.errorText}>{errors.budget.message}</Text>}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.submitButton, mutation.isPending && styles.disabledButton]}
+              onPress={handleSubmit(onSubmit)}
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.submitButtonText}>Post Request</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  backButton: {
+    marginRight: SPACING.md,
+  },
+  headerTitle: {
+    ...TYPOGRAPHY.h2,
+    color: COLORS.text,
+  },
+  scrollContent: {
+    padding: SPACING.lg,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.primary + '10',
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.xl,
+    alignItems: 'center',
+  },
+  infoText: {
+    flex: 1,
+    marginLeft: SPACING.sm,
+    ...TYPOGRAPHY.caption,
+    color: COLORS.primary,
+  },
+  form: {
+    backgroundColor: COLORS.surface,
+    padding: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
+    elevation: 2,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  inputGroup: {
+    marginBottom: SPACING.md,
+  },
+  label: {
+    ...TYPOGRAPHY.h3,
+    color: COLORS.text,
+    marginBottom: SPACING.xs,
+    marginTop: SPACING.sm,
+  },
+  input: {
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...TYPOGRAPHY.body,
+  },
+  inputError: {
+    borderColor: COLORS.error,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+  textArea: {
+    height: 100,
+  },
+  imageScroll: {
+    flexDirection: 'row',
+    marginBottom: SPACING.md,
+  },
+  addImageButton: {
+    width: 80,
+    height: 80,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  addImageText: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.primary,
+    fontWeight: 'bold',
+  },
+  imageWrapper: {
+    position: 'relative',
+    marginRight: SPACING.md,
+  },
+  previewImage: {
+    width: 80,
+    height: 80,
+    borderRadius: BORDER_RADIUS.md,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+  },
+  budgetRow: {
+    flexDirection: 'column',
+    gap: SPACING.sm,
+  },
+  budgetInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+  },
+  currencyPrefix: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.textLight,
+    marginRight: SPACING.xs,
+  },
+  budgetInput: {
+    flex: 1,
+    paddingVertical: SPACING.md,
+    ...TYPOGRAPHY.body,
+  },
+  unitSelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+  },
+  unitChip: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: BORDER_RADIUS.sm,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  activeUnitChip: {
+    backgroundColor: COLORS.primary + '20',
+    borderColor: COLORS.primary,
+  },
+  unitChipText: {
+    fontSize: 12,
+    color: COLORS.textLight,
+  },
+  activeUnitChipText: {
+    color: COLORS.primary,
+    fontWeight: 'bold',
+  },
+  submitButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    alignItems: 'center',
+    marginTop: SPACING.xl,
+  },
+  disabledButton: {
+    backgroundColor: COLORS.textLight,
+  },
+  submitButtonText: {
+    color: COLORS.white,
+    ...TYPOGRAPHY.h3,
+    fontWeight: 'bold',
+  },
+});
+
+export default CreateRequestScreen;
+

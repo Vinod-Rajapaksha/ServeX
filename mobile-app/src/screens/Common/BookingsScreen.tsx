@@ -24,12 +24,25 @@ const BookingsScreen = ({ navigation }: any) => {
   const queryClient = useQueryClient();
   const [reviewModalVisible, setReviewModalVisible] = React.useState(false);
   const [pendingReviewBooking, setPendingReviewBooking] = React.useState<any>(null);
+  const [activeTab, setActiveTab] = React.useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
   const isProvider = user?.role === 'PROVIDER';
 
   const { data: bookings, isLoading, refetch } = useQuery({
     queryKey: ['bookings'],
     queryFn: getMyBookings,
+    refetchInterval: 5000,
   });
+
+  const filteredBookings = React.useMemo(() => {
+    if (!bookings) return [];
+    return bookings.filter((b: any) => {
+      if (activeTab === 'ACTIVE') {
+        return ['PENDING', 'CONFIRMED'].includes(b.status);
+      } else {
+        return ['COMPLETED', 'CANCELLED'].includes(b.status);
+      }
+    });
+  }, [bookings, activeTab]);
 
   React.useEffect(() => {
     if (bookings && !isProvider) {
@@ -47,7 +60,6 @@ const BookingsScreen = ({ navigation }: any) => {
     mutationFn: (data: any) => addFeedback(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      setReviewModalVisible(false);
       Toast.show({
         type: 'success',
         text1: 'Thank you!',
@@ -97,7 +109,7 @@ const BookingsScreen = ({ navigation }: any) => {
   };
 
   const renderBookingItem = ({ item }: { item: any }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.bookingCard}
       onPress={() => navigation.navigate('BookingDetails', { booking: item })}
       activeOpacity={0.7}
@@ -129,9 +141,9 @@ const BookingsScreen = ({ navigation }: any) => {
             <Text style={styles.infoText}>Rs. {item.totalPrice}</Text>
           </View>
         </View>
-        
+
         {isProvider && item.userId?.phone && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.callButton}
             onPress={() => handleCall(item.userId.phone)}
           >
@@ -149,13 +161,28 @@ const BookingsScreen = ({ navigation }: any) => {
         <Text style={styles.headerTitle}>{isProvider ? 'Manage Bookings' : 'My Bookings'}</Text>
       </View>
 
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'ACTIVE' && styles.activeTab]}
+          onPress={() => setActiveTab('ACTIVE')}
+        >
+          <Text style={[styles.tabText, activeTab === 'ACTIVE' && styles.activeTabText]}>Active</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'COMPLETED' && styles.activeTab]}
+          onPress={() => setActiveTab('COMPLETED')}
+        >
+          <Text style={[styles.tabText, activeTab === 'COMPLETED' && styles.activeTabText]}>Completed</Text>
+        </TouchableOpacity>
+      </View>
+
       {isLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
         <FlatList
-          data={bookings}
+          data={filteredBookings}
           renderItem={renderBookingItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
@@ -194,12 +221,38 @@ const styles = StyleSheet.create({
   header: {
     padding: SPACING.lg,
     backgroundColor: COLORS.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     ...TYPOGRAPHY.h2,
     color: COLORS.text,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+    borderRadius: BORDER_RADIUS.md,
+  },
+  activeTab: {
+    backgroundColor: COLORS.primary + '15',
+  },
+  tabText: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.textLight,
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: COLORS.primary,
   },
   listContent: {
     padding: SPACING.md,

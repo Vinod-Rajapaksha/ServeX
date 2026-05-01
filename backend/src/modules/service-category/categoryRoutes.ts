@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as categoryController from './categoryController.js';
 import { protect, restrictTo } from '../../middleware/authMiddleware.js';
 import { UserRole } from '../../core/enums.js';
+import { validate } from '../../middleware/validateMiddleware.js';
+import { createCategorySchema, updateCategorySchema } from '../../validation/categoryValidation.js';
 
 const router = Router();
 
@@ -77,7 +79,7 @@ router.use(protect, restrictTo(UserRole.ADMIN));
  *       201:
  *         description: Category created
  */
-router.post('/', categoryController.create);
+router.post('/', validate(createCategorySchema), categoryController.create);
 
 /**
  * @swagger
@@ -103,7 +105,7 @@ router.post('/', categoryController.create);
  *       200:
  *         description: Category updated
  */
-router.patch('/:id', categoryController.update);
+router.patch('/:id', validate(updateCategorySchema), categoryController.update);
 
 /**
  * @swagger

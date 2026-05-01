@@ -13,6 +13,8 @@ import UserNavigator from './UserNavigator';
 import ProviderNavigator from './ProviderNavigator';
 import AdminNavigator from './AdminNavigator';
 import OnboardingScreen from '../screens/Onboarding/OnboardingScreen';
+import NotificationsScreen from '../screens/Common/NotificationsScreen';
+import AllCategoriesScreen from '../screens/Customer/AllCategoriesScreen';
 import CategoryServicesScreen from '../screens/Customer/CategoryServicesScreen';
 import ServiceDetailsScreen from '../screens/Customer/ServiceDetailsScreen';
 import BookingCheckoutScreen from '../screens/Customer/BookingCheckoutScreen';
@@ -23,7 +25,7 @@ import EditProfileScreen from '../screens/Common/EditProfileScreen';
 import AdminAddEditUserScreen from '../screens/Admin/AdminAddEditUserScreen';
 import AdminAddEditCategoryScreen from '../screens/Admin/AdminAddEditCategoryScreen';
 import AdminAddEditAnnouncementScreen from '../screens/Admin/AdminAddEditAnnouncementScreen';
-
+import RecentActivityScreen from '../screens/Admin/RecentActivityScreen';
 import CreateRequestScreen from '../screens/Customer/CreateRequestScreen';
 import RequestDetailsScreen from '../screens/Customer/RequestDetailsScreen';
 import ChangePasswordScreen from '../screens/Common/ChangePasswordScreen';
@@ -77,6 +79,8 @@ const AppNavigator = () => {
             ) : (
               <Stack.Screen name="Main" component={UserNavigator} />
             )}
+            <Stack.Screen name="AllCategories" component={AllCategoriesScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} />
             <Stack.Screen name="CategoryServices" component={CategoryServicesScreen} />
             <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} />
             <Stack.Screen name="BookingCheckout" component={BookingCheckoutScreen} />
@@ -87,6 +91,7 @@ const AppNavigator = () => {
             <Stack.Screen name="AdminAddEditUser" component={AdminAddEditUserScreen} />
             <Stack.Screen name="AdminAddEditCategory" component={AdminAddEditCategoryScreen} />
             <Stack.Screen name="AdminAddEditAnnouncement" component={AdminAddEditAnnouncementScreen} />
+            <Stack.Screen name="RecentActivity" component={RecentActivityScreen} />
             <Stack.Screen name="CreateRequest" component={CreateRequestScreen} />
             <Stack.Screen name="RequestDetails" component={RequestDetailsScreen} />
             <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
