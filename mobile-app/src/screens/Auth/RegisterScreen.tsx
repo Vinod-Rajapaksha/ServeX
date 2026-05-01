@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { register } from '../../services/auth';
-import { registerSchema, RegisterFormData } from '../../utils/validation';
+import { registerSchema, RegisterFormData } from '../../validation/authValidation';
 import CustomAlert from '../../components/CustomAlert';
 
 const RegisterScreen = ({ navigation }: any) => {
@@ -67,10 +67,14 @@ const RegisterScreen = ({ navigation }: any) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={TYPOGRAPHY.h1}>Create Account</Text>
           <Text style={styles.subtitle}>Join ServeX today</Text>
