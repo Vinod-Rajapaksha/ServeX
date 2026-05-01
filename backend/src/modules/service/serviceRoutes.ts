@@ -2,6 +2,8 @@ import { Router } from 'express';
 import * as serviceController from './serviceController.js';
 import { protect, restrictTo } from '../../middleware/authMiddleware.js';
 import { UserRole } from '../../core/enums.js';
+import { validate } from '../../middleware/validateMiddleware.js';
+import { createServiceSchema, updateServiceSchema } from '../../validation/serviceValidation.js';
 
 const router = Router();
 
@@ -125,7 +127,7 @@ router.use(protect, restrictTo(UserRole.PROVIDER, UserRole.ADMIN));
  *       403:
  *         description: Forbidden (Only Providers/Admins)
  */
-router.post('/', serviceController.create);
+router.post('/', validate(createServiceSchema), serviceController.create);
 
 /**
  * @swagger
@@ -153,7 +155,7 @@ router.post('/', serviceController.create);
  *       403:
  *         description: Not authorized to update this service
  */
-router.patch('/:id', serviceController.update);
+router.patch('/:id', validate(updateServiceSchema), serviceController.update);
 
 /**
  * @swagger
