@@ -30,6 +30,16 @@ const HomeScreen = ({ navigation }: any) => {
   const queryClient = useQueryClient();
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
   const [pendingReviewBooking, setPendingReviewBooking] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigation.navigate('CategoryServices', {
+        categoryName: `Search: ${searchQuery}`,
+        searchInitial: searchQuery.trim()
+      });
+    }
+  };
 
   const { data: announcements, refetch: refetchAnnouncements } = useQuery({
     queryKey: ['announcements', 'CUSTOMER'],
@@ -43,13 +53,14 @@ const HomeScreen = ({ navigation }: any) => {
 
   const { data: services, isLoading: servicesLoading, refetch: refetchServices } = useQuery({
     queryKey: ['featuredServices'],
-    queryFn: () => getAllServices({ limit: 5 }),
+    queryFn: () => getAllServices({ limit: 5, sort: '-rating' }),
   });
 
   const { data: bookings } = useQuery({
     queryKey: ['bookings'],
     queryFn: getMyBookings,
     enabled: user?.role === 'CUSTOMER' || user?.role === 'USER',
+    refetchInterval: 5000,
   });
 
   React.useEffect(() => {
@@ -68,7 +79,6 @@ const HomeScreen = ({ navigation }: any) => {
     mutationFn: (data: any) => addFeedback(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      setReviewModalVisible(false);
       Toast.show({
         type: 'success',
         text1: 'Thank you!',
@@ -113,26 +123,41 @@ const HomeScreen = ({ navigation }: any) => {
           <Text style={styles.welcomeText}>Hello, {user?.name || 'Guest'}!</Text>
           <Text style={TYPOGRAPHY.h2}>Find your service</Text>
         </View>
-        <TouchableOpacity style={styles.notificationBtn}>
+        <TouchableOpacity 
+          style={styles.notificationBtn}
+          onPress={() => navigation.navigate('Notifications')}
+        >
           <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
           <View style={styles.badge} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
         }
       >
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color={COLORS.textLight} />
-          <TextInput
-            placeholder="Search services..."
-            style={styles.searchInput}
-          />
-          <TouchableOpacity style={styles.filterBtn}>
-            <Ionicons name="options-outline" size={20} color={COLORS.white} />
+        <View style={styles.searchWrapper}>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color={COLORS.primary} />
+            <TextInput
+              placeholder="Search services..."
+              style={styles.searchInput}
+              placeholderTextColor={COLORS.textLight}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearBtn}>
+                <Ionicons name="close-circle" size={18} color={COLORS.textLight} />
+              </TouchableOpacity>
+            )}
+          </View>
+          <TouchableOpacity style={styles.filterBtn} onPress={handleSearch}>
+            <Ionicons name="search-outline" size={24} color={COLORS.white} />
           </TouchableOpacity>
         </View>
 
@@ -149,19 +174,23 @@ const HomeScreen = ({ navigation }: any) => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Categories</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('AllCategories')}>
                   <Text style={styles.seeAll}>See All</Text>
                 </TouchableOpacity>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
                 {categories?.map((cat: any) => (
-                  <TouchableOpacity 
-                    key={cat._id} 
+                  <TouchableOpacity
+                    key={cat._id}
                     style={styles.categoryCard}
                     onPress={() => navigation.navigate('CategoryServices', { categoryId: cat._id, categoryName: cat.name })}
                   >
                     <View style={styles.categoryIconContainer}>
-                      <Ionicons name={(cat.icon || 'brush-outline') as any} size={28} color={COLORS.primary} />
+                      {cat.iconImage ? (
+                        <Image source={{ uri: cat.iconImage }} style={styles.categoryImage} />
+                      ) : (
+                        <Ionicons name={(cat.iconName || cat.icon || 'grid-outline') as any} size={28} color={COLORS.primary} />
+                      )}
                     </View>
                     <Text style={styles.categoryName}>{cat.name}</Text>
                   </TouchableOpacity>
@@ -172,42 +201,44 @@ const HomeScreen = ({ navigation }: any) => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Featured Services</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('CategoryServices', { categoryName: 'All Services' })}>
                   <Text style={styles.seeAll}>See All</Text>
                 </TouchableOpacity>
               </View>
-              {services?.map((service: any) => (
-                <TouchableOpacity 
-                   key={service._id} 
-                  style={styles.serviceCard}
-                  onPress={() => navigation.navigate('ServiceDetails', { serviceId: service._id })}
-                >
-                  {service.images && service.images.length > 0 ? (
-                    <Image source={{ uri: service.images[0] }} style={styles.serviceImage} />
-                  ) : (
-                    <View style={styles.serviceImagePlaceholder}>
-                      <Ionicons name="image-outline" size={40} color={COLORS.border} />
-                    </View>
-                  )}
-                  <View style={styles.serviceInfo}>
-                    <View style={styles.serviceHeaderRow}>
-                      <Text style={styles.serviceTitle}>{service.title}</Text>
-                      <View style={styles.ratingRow}>
-                        <Ionicons name="star" size={14} color="#FFC107" />
-                        <Text style={styles.ratingText}>{service.rating || 'New'}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featuredList}>
+                {services?.map((service: any) => (
+                  <TouchableOpacity
+                    key={service._id}
+                    style={styles.serviceCard}
+                    onPress={() => navigation.navigate('ServiceDetails', { serviceId: service._id })}
+                  >
+                    {service.images && service.images.length > 0 ? (
+                      <Image source={{ uri: service.images[0] }} style={styles.serviceImage} />
+                    ) : (
+                      <View style={styles.serviceImagePlaceholder}>
+                        <Ionicons name="image-outline" size={40} color={COLORS.border} />
                       </View>
+                    )}
+                    <View style={styles.serviceInfo}>
+                      <View style={styles.serviceHeaderRow}>
+                        <Text style={styles.serviceTitle} numberOfLines={1}>{service.title}</Text>
+                        <View style={styles.ratingRow}>
+                          <Ionicons name="star" size={12} color="#FFC107" />
+                          <Text style={styles.ratingText}>{service.rating || 'New'}</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.providerName} numberOfLines={1}>{service.providerId?.name || 'Professional Provider'}</Text>
+                      <Text style={styles.priceText}>
+                        Rs. {service.price} <Text style={styles.priceUnit}>/ {service.priceUnit || 'Hour'}</Text>
+                      </Text>
                     </View>
-                    <Text style={styles.providerName}>{service.providerId?.name || 'Professional Provider'}</Text>
-                    <Text style={styles.priceText}>
-                      Rs. {service.price} <Text style={styles.priceUnit}>/ {service.priceUnit || 'Hour'}</Text>
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           </>
         )}
-        
+
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -260,27 +291,51 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.white,
   },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.xl,
+    gap: SPACING.sm,
+  },
   searchContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.lg,
     paddingHorizontal: SPACING.md,
-    height: 56,
-    borderRadius: BORDER_RADIUS.md,
-    marginBottom: SPACING.xl,
+    height: 54,
+    borderRadius: BORDER_RADIUS.lg,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(0,0,0,0.05)',
+    elevation: 4,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
   searchInput: {
     flex: 1,
     marginLeft: SPACING.sm,
     ...TYPOGRAPHY.body,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  clearBtn: {
+    padding: 4,
   },
   filterBtn: {
+    width: 54,
+    height: 54,
     backgroundColor: COLORS.primary,
-    padding: SPACING.sm,
-    borderRadius: BORDER_RADIUS.sm,
+    borderRadius: BORDER_RADIUS.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   section: {
     marginBottom: SPACING.xl,
@@ -318,17 +373,28 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
     borderWidth: 1,
     borderColor: COLORS.border,
+    overflow: 'hidden',
+  },
+  categoryImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
   },
   categoryName: {
     ...TYPOGRAPHY.caption,
     color: COLORS.text,
     fontWeight: '600',
   },
+  featuredList: {
+    paddingLeft: SPACING.lg,
+    paddingRight: SPACING.md,
+  },
   serviceCard: {
     backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.lg,
+    width: 260,
     borderRadius: BORDER_RADIUS.lg,
-    marginBottom: SPACING.md,
+    marginRight: SPACING.md,
+    marginBottom: SPACING.sm,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -360,7 +426,9 @@ const styles = StyleSheet.create({
   },
   serviceTitle: {
     ...TYPOGRAPHY.h3,
-    fontSize: 18,
+    fontSize: 16,
+    flex: 1,
+    marginRight: 4,
   },
   ratingRow: {
     flexDirection: 'row',

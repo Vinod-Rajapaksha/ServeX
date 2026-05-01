@@ -20,11 +20,24 @@ const RequestsScreen = ({ navigation }: any) => {
   const queryClient = useQueryClient();
   const [alertVisible, setAlertVisible] = React.useState(false);
   const [selectedRequestId, setSelectedRequestId] = React.useState<string | null>(null);
+  const [activeTab, setActiveTab] = React.useState<'ACTIVE' | 'RESOLVED'>('ACTIVE');
 
   const { data: requests, isLoading, refetch } = useQuery({
     queryKey: ['myRequests'],
     queryFn: getMyRequests,
+    refetchInterval: 5000,
   });
+
+  const filteredRequests = React.useMemo(() => {
+    if (!requests) return [];
+    return requests.filter((r: any) => {
+      if (activeTab === 'ACTIVE') {
+        return ['OPEN', 'IN_PROGRESS'].includes(r.status);
+      } else {
+        return ['RESOLVED'].includes(r.status);
+      }
+    });
+  }, [requests, activeTab]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteRequest(id),
@@ -73,7 +86,7 @@ const RequestsScreen = ({ navigation }: any) => {
           <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status}</Text>
         </View>
       </View>
-      
+
       <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
 
       {item.providerId && (
@@ -90,14 +103,14 @@ const RequestsScreen = ({ navigation }: any) => {
         </View>
         <View style={styles.footerActions}>
           {item.status === 'OPEN' && (
-            <TouchableOpacity 
-              style={styles.deleteIconButton} 
+            <TouchableOpacity
+              style={styles.deleteIconButton}
               onPress={() => handleDeletePress(item._id)}
             >
               <Ionicons name="trash-outline" size={20} color={COLORS.error} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.viewButton}
             onPress={() => navigation.navigate('RequestDetails', { requestId: item._id })}
           >
@@ -112,11 +125,20 @@ const RequestsScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Custom Requests</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.navigate('CreateRequest')}
+      </View>
+
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'ACTIVE' && styles.activeTab]}
+          onPress={() => setActiveTab('ACTIVE')}
         >
-          <Ionicons name="add" size={24} color={COLORS.white} />
+          <Text style={[styles.tabText, activeTab === 'ACTIVE' && styles.activeTabText]}>Active</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'RESOLVED' && styles.activeTab]}
+          onPress={() => setActiveTab('RESOLVED')}
+        >
+          <Text style={[styles.tabText, activeTab === 'RESOLVED' && styles.activeTabText]}>Resolved</Text>
         </TouchableOpacity>
       </View>
 
@@ -126,7 +148,7 @@ const RequestsScreen = ({ navigation }: any) => {
         </View>
       ) : (
         <FlatList
-          data={requests}
+          data={filteredRequests}
           renderItem={renderRequestItem}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
@@ -151,6 +173,14 @@ const RequestsScreen = ({ navigation }: any) => {
         onConfirm={() => selectedRequestId && deleteMutation.mutate(selectedRequestId)}
         onCancel={() => setAlertVisible(false)}
       />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('CreateRequest')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={30} color={COLORS.white} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -172,13 +202,46 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.h2,
     color: COLORS.text,
   },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  fab: {
+    position: 'absolute',
+    bottom: SPACING.lg,
+    right: SPACING.xl,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: SPACING.sm,
+    alignItems: 'center',
+    borderRadius: BORDER_RADIUS.md,
+  },
+  activeTab: {
+    backgroundColor: COLORS.primary + '15',
+  },
+  tabText: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.textLight,
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: COLORS.primary,
   },
   listContent: {
     padding: SPACING.md,

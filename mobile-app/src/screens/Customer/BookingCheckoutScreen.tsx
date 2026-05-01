@@ -20,15 +20,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-
-const schema = z.object({
-  notes: z.string().min(5, 'Please describe what needs to be done (min 5 characters)'),
-  address: z.string().min(5, 'Address is required and must be detailed'),
-  useDefaultAddress: z.boolean(),
-});
-
-type FormData = z.infer<typeof schema>;
+import { bookingSchema, BookingFormData } from '../../validation/bookingValidation';
 
 const BookingCheckoutScreen = ({ route, navigation }: any) => {
   const { service } = route.params;
@@ -37,8 +29,8 @@ const BookingCheckoutScreen = ({ route, navigation }: any) => {
   const [images, setImages] = useState<any[]>([]);
   const [alertConfig, setAlertConfig] = useState({ visible: false, title: '', message: '', type: 'error' as any });
 
-  const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm<BookingFormData>({
+    resolver: zodResolver(bookingSchema),
     defaultValues: {
       notes: '',
       address: user?.address || '',
@@ -77,7 +69,7 @@ const BookingCheckoutScreen = ({ route, navigation }: any) => {
     setImages(updated);
   };
 
-  const handleConfirmBooking = async (data: FormData) => {
+  const handleConfirmBooking = async (data: BookingFormData) => {
     setLoading(true);
     try {
       await createBooking({

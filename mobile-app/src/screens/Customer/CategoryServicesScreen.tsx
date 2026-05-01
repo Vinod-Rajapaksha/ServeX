@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,12 +14,17 @@ import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/them
 import { Ionicons } from '@expo/vector-icons';
 
 const CategoryServicesScreen = ({ route, navigation }: any) => {
-  const { categoryId, categoryName } = route.params;
+  const { categoryId, categoryName, searchInitial } = route.params || {};
+  const [search, setSearch] = useState(searchInitial || '');
 
   const { data: services, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['services', categoryId],
+    queryKey: ['services', categoryId, search],
     queryFn: async () => {
-      const response = await client.get(`/services?category=${categoryId}`);
+      let url = '/services?';
+      if (categoryId) url += `category=${categoryId}&`;
+      if (search) url += `search=${search}&`;
+      
+      const response = await client.get(url);
       return response.data.data;
     },
   });
@@ -71,7 +76,9 @@ const CategoryServicesScreen = ({ route, navigation }: any) => {
           refreshing={isRefetching}
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No services found in this category.</Text>
+              <Text style={styles.emptyText}>
+                {search ? `No services found for "${search}"` : categoryId ? 'No services found in this category.' : 'No services found.'}
+              </Text>
             </View>
           }
         />

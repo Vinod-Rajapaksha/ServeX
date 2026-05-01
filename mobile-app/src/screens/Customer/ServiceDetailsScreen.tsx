@@ -82,7 +82,6 @@ const ServiceDetailsScreen = ({ route, navigation }: any) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['serviceReviews', serviceId] });
       queryClient.invalidateQueries({ queryKey: ['service', serviceId] });
-      setReviewModalVisible(false);
       setEditingReview(null);
       Toast.show({ type: 'success', text1: 'Review updated' });
     },

@@ -25,6 +25,7 @@ const RequestDetailsScreen = ({ route, navigation }: any) => {
   const { data: requests, isLoading } = useQuery({
     queryKey: ['myRequests'],
     queryFn: getMyRequests,
+    refetchInterval: 5000,
   });
 
   const request = requests?.find((r: any) => r._id === requestId);

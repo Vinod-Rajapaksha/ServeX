@@ -20,7 +20,7 @@ import { createRequest } from '../../services/request';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-import { requestSchema, RequestFormData } from '../../utils/validation';
+import { requestSchema, RequestFormData } from '../../validation/requestValidation';
 
 const PRICE_UNITS = ['Hour', 'Day', 'Week', 'Month', 'Year'];
 
