@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import * as bookingController from './bookingController.js';
-import { protect } from '../../middleware/authMiddleware.js';
+import { UserRole } from '../../core/enums.js';
+import { validate } from '../../middleware/validateMiddleware.js';
+import { createBookingSchema, updateBookingSchema } from '../../validation/bookingValidation.js';
+import { protect, restrictTo } from '../../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -66,7 +69,7 @@ router.use(protect);
  *       201:
  *         description: Booking created successfully
  */
-router.post('/', bookingController.create);
+router.post('/', validate(createBookingSchema), bookingController.create);
 
 /**
  * @swagger
@@ -80,6 +83,7 @@ router.post('/', bookingController.create);
  *       200:
  *         description: List of bookings
  */
+router.get('/', restrictTo(UserRole.ADMIN), bookingController.getAll);
 router.get('/my', bookingController.getMy);
 router.get('/:id', bookingController.getById);
 
@@ -112,7 +116,7 @@ router.get('/:id', bookingController.getById);
  *       200:
  *         description: Booking updated successfully
  */
-router.patch('/:id', bookingController.update);
+router.patch('/:id', validate(updateBookingSchema), bookingController.update);
 router.delete('/:id', bookingController.remove);
 router.post('/:id/messages', bookingController.sendMessage);
 

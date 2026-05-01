@@ -30,6 +30,17 @@ export const getMyBookings = async (userId: string, role: UserRole) => {
     .sort({ createdAt: -1 });
 };
 
+export const getAllBookings = async (filters: any = {}) => {
+  const query: any = {};
+  if (filters.status) query.status = filters.status;
+
+  return await Booking.find(query)
+    .populate('serviceId', 'title images')
+    .populate('userId', 'name phone email address')
+    .populate('providerId', 'name phone email address')
+    .sort({ createdAt: -1 });
+};
+
 export const getBookingById = async (id: string, userId: string, role: UserRole) => {
   const booking = await Booking.findById(id)
     .populate('serviceId', 'title images')

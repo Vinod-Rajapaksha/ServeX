@@ -31,6 +31,16 @@ export const getMy = async (req: any, res: Response, next: NextFunction) => {
   }
 };
 
+export const getAll = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { status } = req.query;
+    const result = await bookingService.getAllBookings({ status });
+    sendResponse(res, 200, result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getById = async (req: any, res: Response, next: NextFunction) => {
   try {
     const result = await bookingService.getBookingById(req.params.id, req.user._id, req.user.role);
