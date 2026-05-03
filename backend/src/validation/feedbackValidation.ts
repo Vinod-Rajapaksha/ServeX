@@ -2,7 +2,9 @@ import { z } from 'zod';
 
 export const createFeedbackSchema = z.object({
   body: z.object({
-    serviceId: z.string().min(1, 'Service ID is required'),
+    bookingId: z.string().min(1, 'Booking ID is required'),
+    providerId: z.string().min(1, 'Provider ID is required'),
+    serviceId: z.string().optional(),
     rating: z.number().min(1, 'Rating must be at least 1').max(5, 'Rating cannot exceed 5'),
     comment: z.string().min(1, 'Comment is required'),
     images: z.array(z.string()).optional(),
