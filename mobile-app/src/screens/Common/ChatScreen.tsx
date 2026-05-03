@@ -74,7 +74,7 @@ const ChatScreen = ({ route, navigation }: any) => {
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        enabled={Platform.OS === 'ios'}
       >
         <ScrollView 
           style={styles.chatContainer}
@@ -116,6 +116,7 @@ const ChatScreen = ({ route, navigation }: any) => {
           <TextInput
             style={styles.chatInput}
             placeholder="Type a message..."
+            placeholderTextColor={COLORS.textLight}
             value={chatMessage}
             onChangeText={setChatMessage}
             multiline

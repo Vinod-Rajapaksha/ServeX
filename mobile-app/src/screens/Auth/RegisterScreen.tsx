@@ -14,6 +14,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { register } from '../../services/auth';
 import { registerSchema, RegisterFormData } from '../../validation/authValidation';
 import CustomAlert from '../../components/CustomAlert';
@@ -66,187 +67,200 @@ const RegisterScreen = ({ navigation }: any) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
-    >
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
-        <View style={styles.header}>
-          <Text style={TYPOGRAPHY.h1}>Create Account</Text>
-          <Text style={styles.subtitle}>Join ServeX today</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.roleContainer}>
-            <TouchableOpacity
-              style={[styles.roleButton, role === 'USER' && styles.activeRole]}
-              onPress={() => setValue('role', 'USER')}
-            >
-              <Ionicons name="person-outline" size={20} color={role === 'USER' ? COLORS.white : COLORS.text} />
-              <Text style={[styles.roleText, role === 'USER' && styles.activeRoleText]}>User</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.roleButton, role === 'PROVIDER' && styles.activeRole]}
-              onPress={() => setValue('role', 'PROVIDER')}
-            >
-              <Ionicons name="construct-outline" size={20} color={role === 'PROVIDER' ? COLORS.white : COLORS.text} />
-              <Text style={[styles.roleText, role === 'PROVIDER' && styles.activeRoleText]}>Provider</Text>
-            </TouchableOpacity>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.header}>
+            <Text style={TYPOGRAPHY.h1}>Create Account</Text>
+            <Text style={styles.subtitle}>Join ServeX today</Text>
           </View>
 
-          <View style={styles.inputGroup}>
-            <View style={[styles.inputContainer, errors.name && styles.inputError]}>
-              <Ionicons name="person-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
-              <Controller
-                control={control}
-                name="name"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Full Name"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                  />
-                )}
-              />
-            </View>
-            {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
-          </View>
-
-          <View style={styles.inputGroup}>
-            <View style={[styles.inputContainer, errors.email && styles.inputError]}>
-              <Ionicons name="mail-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Email Address"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                )}
-              />
-            </View>
-            {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-          </View>
-
-          <View style={styles.inputGroup}>
-            <View style={[styles.inputContainer, errors.phone && styles.inputError]}>
-              <Ionicons name="call-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
-              <Controller
-                control={control}
-                name="phone"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Phone Number"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    keyboardType="phone-pad"
-                  />
-                )}
-              />
-            </View>
-            {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
-          </View>
-
-          <View style={styles.inputGroup}>
-            <View style={[styles.inputContainer, errors.address && styles.inputError]}>
-              <Ionicons name="location-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
-              <Controller
-                control={control}
-                name="address"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Full Address"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    multiline
-                  />
-                )}
-              />
-            </View>
-            {errors.address && <Text style={styles.errorText}>{errors.address.message}</Text>}
-          </View>
-
-          <View style={styles.inputGroup}>
-            <View style={[styles.inputContainer, errors.password && styles.inputError]}>
-              <Ionicons name="lock-closed-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    secureTextEntry={!showPassword}
-                  />
-                )}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={COLORS.textLight}
-                />
+          <View style={styles.form}>
+            <View style={styles.roleContainer}>
+              <TouchableOpacity
+                style={[styles.roleButton, role === 'USER' && styles.activeRole]}
+                onPress={() => setValue('role', 'USER')}
+              >
+                <Ionicons name="person-outline" size={20} color={role === 'USER' ? COLORS.white : COLORS.text} />
+                <Text style={[styles.roleText, role === 'USER' && styles.activeRoleText]}>User</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.roleButton, role === 'PROVIDER' && styles.activeRole]}
+                onPress={() => setValue('role', 'PROVIDER')}
+              >
+                <Ionicons name="construct-outline" size={20} color={role === 'PROVIDER' ? COLORS.white : COLORS.text} />
+                <Text style={[styles.roleText, role === 'PROVIDER' && styles.activeRoleText]}>Provider</Text>
               </TouchableOpacity>
             </View>
-            {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
-          </View>
 
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleSubmit(onSubmit)}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={COLORS.white} />
-            ) : (
-              <Text style={styles.registerButtonText}>Register</Text>
-            )}
-          </TouchableOpacity>
+            <View style={styles.inputGroup}>
+              <View style={[styles.inputContainer, errors.name && styles.inputError]}>
+                <Ionicons name="person-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
+                <Controller
+                  control={control}
+                  name="name"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Full Name"
+                      placeholderTextColor={COLORS.textLight}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      autoCorrect={false}
+                    />
+                  )}
+                />
+              </View>
+              {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
+            </View>
 
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLink}>Login</Text>
+            <View style={styles.inputGroup}>
+              <View style={[styles.inputContainer, errors.email && styles.inputError]}>
+                <Ionicons name="mail-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Email Address"
+                      placeholderTextColor={COLORS.textLight}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  )}
+                />
+              </View>
+              {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={[styles.inputContainer, errors.phone && styles.inputError]}>
+                <Ionicons name="call-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
+                <Controller
+                  control={control}
+                  name="phone"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Phone Number"
+                      placeholderTextColor={COLORS.textLight}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      keyboardType="phone-pad"
+                      autoCorrect={false}
+                    />
+                  )}
+                />
+              </View>
+              {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={[styles.inputContainer, errors.address && styles.inputError]}>
+                <Ionicons name="location-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
+                <Controller
+                  control={control}
+                  name="address"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Full Address"
+                      placeholderTextColor={COLORS.textLight}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      multiline
+                      autoCorrect={false}
+                    />
+                  )}
+                />
+              </View>
+              {errors.address && <Text style={styles.errorText}>{errors.address.message}</Text>}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={[styles.inputContainer, errors.password && styles.inputError]}>
+                <Ionicons name="lock-closed-outline" size={20} color={COLORS.textLight} style={styles.inputIcon} />
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Password"
+                      placeholderTextColor={COLORS.textLight}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      secureTextEntry={!showPassword}
+                      autoCorrect={false}
+                    />
+                  )}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color={COLORS.textLight}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
+            </View>
+
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={handleSubmit(onSubmit)}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.registerButtonText}>Register</Text>
+              )}
             </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
 
-      <CustomAlert
-        visible={alertConfig.visible}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        onConfirm={() => {
-          setAlertConfig({ ...alertConfig, visible: false });
-          if (alertConfig.type === 'success') {
-            navigation.navigate('Login');
-          }
-        }}
-      />
-    </KeyboardAvoidingView>
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Already have an account? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.loginLink}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+
+        <CustomAlert
+          visible={alertConfig.visible}
+          title={alertConfig.title}
+          message={alertConfig.message}
+          type={alertConfig.type}
+          onConfirm={() => {
+            setAlertConfig({ ...alertConfig, visible: false });
+            if (alertConfig.type === 'success') {
+              navigation.navigate('Login');
+            }
+          }}
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -256,7 +270,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: SPACING.xl,
-    justifyContent: 'center',
+    paddingTop: SPACING.xxl * 2,
   },
   header: {
     alignItems: 'center',
@@ -324,6 +338,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     ...TYPOGRAPHY.body,
+    color: COLORS.text,
   },
   registerButton: {
     backgroundColor: COLORS.primary,

@@ -16,7 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 const RecentActivityScreen = ({ navigation }: any) => {
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  const { data: bookings, isLoading, refetch, isRefetching } = useQuery({
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { data: bookings, isLoading, refetch } = useQuery({
     queryKey: ['adminAllBookings', statusFilter],
     queryFn: async () => {
       const response = await client.get('/bookings', {
@@ -26,6 +28,12 @@ const RecentActivityScreen = ({ navigation }: any) => {
     },
     refetchInterval: 5000,
   });
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
 
   const statuses = ['ALL', 'PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED'];
 
@@ -98,7 +106,7 @@ const RecentActivityScreen = ({ navigation }: any) => {
         />
       </View>
 
-      {isLoading ? (
+      {isLoading && !bookings ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
@@ -108,8 +116,8 @@ const RecentActivityScreen = ({ navigation }: any) => {
           renderItem={renderBookingItem}
           keyExtractor={item => item._id}
           contentContainerStyle={styles.listContent}
-          onRefresh={refetch}
-          refreshing={isRefetching}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="calendar-outline" size={64} color={COLORS.border} />

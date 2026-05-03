@@ -46,7 +46,7 @@ const CategoryServicesScreen = ({ route, navigation }: any) => {
           <Text style={styles.servicePrice}>Rs. {item.price}</Text>
           <View style={styles.ratingContainer}>
             <Ionicons name="star" size={16} color={COLORS.warning} />
-            <Text style={styles.ratingText}>{item.rating || 'New'}</Text>
+            <Text style={styles.ratingText}>{item.rating ? Number(item.rating).toFixed(1) : 'New'}</Text>
           </View>
         </View>
       </View>

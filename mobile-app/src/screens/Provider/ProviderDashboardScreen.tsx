@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -21,19 +22,23 @@ import AnnouncementSlider from '../../components/AnnouncementSlider';
 const ProviderDashboardScreen = ({ navigation }: any) => {
   const { user } = useSelector((state: RootState) => state.auth);
 
+  const [refreshing, setRefreshing] = useState(false);
+
   const { data: announcements, refetch: refetchAnnouncements } = useQuery({
     queryKey: ['announcements', 'PROVIDER'],
     queryFn: () => getAnnouncementsByRole('PROVIDER'),
   });
 
-  const { data: bookings, isLoading, refetch, isRefetching } = useQuery({
+  const { data: bookings, isLoading, refetch } = useQuery({
     queryKey: ['providerBookings'],
     queryFn: getMyBookings,
     refetchInterval: 5000,
   });
 
   const onRefresh = async () => {
+    setRefreshing(true);
     await Promise.all([refetch(), refetchAnnouncements()]);
+    setRefreshing(false);
   };
 
 
@@ -64,7 +69,7 @@ const ProviderDashboardScreen = ({ navigation }: any) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} colors={[COLORS.primary]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
         }
       >
 
@@ -93,7 +98,7 @@ const ProviderDashboardScreen = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          {isLoading ? (
+          {isLoading && !bookings ? (
             <ActivityIndicator color={COLORS.primary} />
           ) : pendingJobs.length === 0 ? (
             <Text style={styles.emptyText}>No pending jobs found.</Text>

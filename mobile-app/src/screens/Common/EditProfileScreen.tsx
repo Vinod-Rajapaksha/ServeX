@@ -93,6 +93,7 @@ const EditProfileScreen = ({ navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -131,6 +132,7 @@ const EditProfileScreen = ({ navigation }: any) => {
                     onChangeText={onChange}
                     value={value}
                     placeholder="Enter your name"
+                    placeholderTextColor={COLORS.textLight}
                   />
                 )}
               />
@@ -149,6 +151,7 @@ const EditProfileScreen = ({ navigation }: any) => {
                     onChangeText={onChange}
                     value={value}
                     placeholder="Enter your email"
+                    placeholderTextColor={COLORS.textLight}
                     keyboardType="email-address"
                     autoCapitalize="none"
                   />
@@ -169,6 +172,7 @@ const EditProfileScreen = ({ navigation }: any) => {
                     onChangeText={onChange}
                     value={value}
                     placeholder="Enter your phone number"
+                    placeholderTextColor={COLORS.textLight}
                     keyboardType="phone-pad"
                   />
                 )}
@@ -188,6 +192,7 @@ const EditProfileScreen = ({ navigation }: any) => {
                     onChangeText={onChange}
                     value={value}
                     placeholder="Enter your address"
+                    placeholderTextColor={COLORS.textLight}
                     multiline
                   />
                 )}

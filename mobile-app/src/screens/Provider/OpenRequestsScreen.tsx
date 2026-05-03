@@ -190,6 +190,7 @@ const OpenRequestsScreen = () => {
                   value={price}
                   onChangeText={setPrice}
                   placeholder="0.00"
+                  placeholderTextColor={COLORS.textLight}
                   keyboardType="numeric"
                 />
               </View>
@@ -221,6 +222,7 @@ const OpenRequestsScreen = () => {
                 value={message}
                 onChangeText={setMessage}
                 placeholder="Briefly explain why you are the best fit..."
+                placeholderTextColor={COLORS.textLight}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"

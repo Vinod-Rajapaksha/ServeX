@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { COLORS, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 
 interface InputProps {
   label?: string;
@@ -28,6 +29,7 @@ const Input: React.FC<InputProps> = ({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        placeholderTextColor={COLORS.textLight}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize="none"
@@ -43,23 +45,24 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 5,
-    fontSize: 14,
-    color: '#333',
+    ...TYPOGRAPHY.h3,
+    color: COLORS.text,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: COLORS.border,
     padding: 12,
-    borderRadius: 8,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    borderRadius: BORDER_RADIUS.md,
+    ...TYPOGRAPHY.body,
+    backgroundColor: COLORS.background,
+    color: COLORS.text,
   },
   inputError: {
-    borderColor: '#dc3545',
+    borderColor: COLORS.error,
   },
   errorText: {
-    color: '#dc3545',
-    fontSize: 12,
+    color: COLORS.error,
+    ...TYPOGRAPHY.caption,
     marginTop: 5,
   },
 });
