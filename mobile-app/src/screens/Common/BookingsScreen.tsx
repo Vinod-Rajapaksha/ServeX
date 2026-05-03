@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsFocused } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { getMyBookings } from '../../services/booking';
 import { addFeedback } from '../../services/feedback';
@@ -23,9 +24,11 @@ const BookingsScreen = ({ navigation }: any) => {
   const { user } = useSelector((state: RootState) => state.auth);
   const queryClient = useQueryClient();
   const [reviewModalVisible, setReviewModalVisible] = React.useState(false);
+  const [autoReviewShown, setAutoReviewShown] = React.useState(false);
   const [pendingReviewBooking, setPendingReviewBooking] = React.useState<any>(null);
   const [activeTab, setActiveTab] = React.useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
   const isProvider = user?.role === 'PROVIDER';
+  const isFocused = useIsFocused();
 
   const { data: bookings, isLoading, refetch } = useQuery({
     queryKey: ['bookings'],
@@ -45,16 +48,17 @@ const BookingsScreen = ({ navigation }: any) => {
   }, [bookings, activeTab]);
 
   React.useEffect(() => {
-    if (bookings && !isProvider) {
+    if (bookings && !isProvider && !autoReviewShown && isFocused) {
       const unreviewedBooking = bookings.find(
         (b: any) => b.status === 'COMPLETED' && !b.isReviewed
       );
       if (unreviewedBooking) {
         setPendingReviewBooking(unreviewedBooking);
         setReviewModalVisible(true);
+        setAutoReviewShown(true);
       }
     }
-  }, [bookings, isProvider]);
+  }, [bookings, isProvider, autoReviewShown, isFocused]);
 
   const feedbackMutation = useMutation({
     mutationFn: (data: any) => addFeedback(data),

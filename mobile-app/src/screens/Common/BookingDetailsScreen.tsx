@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useIsFocused as useNavigationIsFocused } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { updateBooking, getBookingById, deleteBooking } from '../../services/booking';
@@ -32,18 +33,28 @@ const BookingDetailsScreen = ({ route, navigation }: any) => {
   const { booking: initialBooking } = route.params;
   const { user } = useSelector((state: RootState) => state.auth);
   const isProvider = user?.role === 'PROVIDER';
+  const isFocused = useNavigationIsFocused();
   const queryClient = useQueryClient();
 
-  const { data: booking = initialBooking, isLoading, refetch, isRefetching } = useQuery({
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { data: booking = initialBooking, isLoading, refetch } = useQuery({
     queryKey: ['booking', initialBooking._id],
     queryFn: () => getBookingById(initialBooking._id),
     initialData: initialBooking,
     refetchInterval: 5000,
   });
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
   const [status, setStatus] = useState(booking.status);
   const [notes, setNotes] = useState(booking.notes || '');
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [autoReviewShown, setAutoReviewShown] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     visible: false,
     title: '',
@@ -58,11 +69,12 @@ const BookingDetailsScreen = ({ route, navigation }: any) => {
       setStatus(booking.status);
       setNotes(booking.notes || '');
       
-      if (!isProvider && booking.status === 'COMPLETED' && !booking.isReviewed) {
+      if (!isProvider && booking.status === 'COMPLETED' && !booking.isReviewed && !autoReviewShown && isFocused) {
         setReviewModalVisible(true);
+        setAutoReviewShown(true);
       }
     }
-  }, [booking, isProvider]);
+  }, [booking, isProvider, autoReviewShown, isFocused]);
 
   const feedbackMutation = useMutation({
     mutationFn: (data: any) => addFeedback(data),
@@ -200,6 +212,7 @@ const BookingDetailsScreen = ({ route, navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -211,7 +224,7 @@ const BookingDetailsScreen = ({ route, navigation }: any) => {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[COLORS.primary]} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
           }
         >
           {/* Service Info */}

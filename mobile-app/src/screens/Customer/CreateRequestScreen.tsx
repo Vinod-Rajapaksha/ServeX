@@ -97,6 +97,7 @@ const CreateRequestScreen = ({ navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -143,6 +144,7 @@ const CreateRequestScreen = ({ navigation }: any) => {
                     onChangeText={onChange}
                     value={value}
                     placeholder="e.g. Garden cleaning and weeding"
+                    placeholderTextColor={COLORS.textLight}
                   />
                 )}
               />
@@ -161,6 +163,7 @@ const CreateRequestScreen = ({ navigation }: any) => {
                     onChangeText={onChange}
                     value={value}
                     placeholder="Provide more details about the task..."
+                    placeholderTextColor={COLORS.textLight}
                     multiline
                     numberOfLines={4}
                     textAlignVertical="top"
@@ -185,6 +188,7 @@ const CreateRequestScreen = ({ navigation }: any) => {
                         onChangeText={onChange}
                         value={value}
                         placeholder="0.00"
+                        placeholderTextColor={COLORS.textLight}
                         keyboardType="numeric"
                       />
                     )}

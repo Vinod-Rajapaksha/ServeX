@@ -92,6 +92,7 @@ const AdminAddEditCategoryScreen = ({ route, navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -126,6 +127,7 @@ const AdminAddEditCategoryScreen = ({ route, navigation }: any) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="e.g. Cleaning"
+                  placeholderTextColor={COLORS.textLight}
                 />
               )}
             />
@@ -142,6 +144,7 @@ const AdminAddEditCategoryScreen = ({ route, navigation }: any) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="e.g. Professional home and office cleaning"
+                  placeholderTextColor={COLORS.textLight}
                   multiline
                   numberOfLines={3}
                   textAlignVertical="top"

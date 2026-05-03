@@ -70,6 +70,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
@@ -98,6 +99,7 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
                     <TextInput
                       style={styles.input}
                       placeholder="Email Address"
+                      placeholderTextColor={COLORS.textLight}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       onBlur={onBlur}

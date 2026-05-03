@@ -80,6 +80,7 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -100,7 +101,8 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. Nimal Perera"
+                  placeholderTextColor={COLORS.textLight}
                 />
               )}
             />
@@ -116,7 +118,8 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
                   value={value}
                   onBlur={onBlur}
                   onChangeText={onChange}
-                  placeholder="e.g. john@example.com"
+                  placeholder="e.g. nimal@example.com"
+                  placeholderTextColor={COLORS.textLight}
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
@@ -137,6 +140,7 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
                       onBlur={onBlur}
                       onChangeText={onChange}
                       placeholder="Min. 8 characters"
+                      placeholderTextColor={COLORS.textLight}
                       secureTextEntry
                     />
                   )}
@@ -156,6 +160,7 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   placeholder="e.g. 07xxxxxxxx"
+                  placeholderTextColor={COLORS.textLight}
                   keyboardType="phone-pad"
                 />
               )}
@@ -173,6 +178,7 @@ const AdminAddEditUserScreen = ({ route, navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   placeholder="e.g. 123 Main St, Colombo"
+                  placeholderTextColor={COLORS.textLight}
                   multiline
                   numberOfLines={2}
                 />

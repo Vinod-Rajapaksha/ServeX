@@ -8,6 +8,9 @@ import {
   TextInput,
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY, BORDER_RADIUS } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -115,7 +118,10 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.overlay}
+      >
         {showSuccess ? (
           <View style={styles.container}>
             <View style={styles.successContainer}>
@@ -145,100 +151,102 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               </TouchableOpacity>
             </View>
 
-            {serviceName && (
-              <Text style={styles.serviceNameText}>{serviceName}</Text>
-            )}
-
-            <Text style={styles.subtitle}>How was your experience?</Text>
-
-            <View style={styles.starSection}>
-              <Controller
-                control={control}
-                name="rating"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.starContainer}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <TouchableOpacity
-                        key={star}
-                        onPress={() => onChange(star)}
-                        style={styles.starButton}
-                      >
-                        <Ionicons
-                          name={star <= value ? 'star' : 'star-outline'}
-                          size={40}
-                          color={star <= value ? COLORS.warning : COLORS.border}
-                        />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              />
-              {errors.rating && <Text style={styles.errorText}>{errors.rating.message}</Text>}
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Controller
-                control={control}
-                name="comment"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={[styles.input, errors.comment && styles.inputError]}
-                    placeholder="Share your feedback (required)..."
-                    placeholderTextColor={COLORS.textLight}
-                    multiline
-                    numberOfLines={4}
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    textAlignVertical="top"
-                  />
-                )}
-              />
-              {errors.comment && <Text style={styles.errorText}>{errors.comment.message}</Text>}
-            </View>
-
-            <View style={styles.imageSection}>
-              <Text style={styles.imageLabel}>Add Photos (Optional)</Text>
-              <View style={styles.imageList}>
-                {images.map((uri, index) => (
-                  <View key={index} style={styles.imageWrapper}>
-                    <Image source={{ uri }} style={styles.previewImage} />
-                    <TouchableOpacity
-                      style={styles.removeImageBtn}
-                      onPress={() => removeImage(index)}
-                    >
-                      <Ionicons name="close-circle" size={20} color={COLORS.error} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                {images.length < 5 && (
-                  <TouchableOpacity style={styles.addImageBtn} onPress={pickImage}>
-                    <Ionicons name="camera-outline" size={28} color={COLORS.primary} />
-                    <Text style={styles.addImageText}>Add</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                isLoading && styles.disabledButton,
-              ]}
-              onPress={handleSubmit(onFormSubmit)}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color={COLORS.white} />
-              ) : (
-                <Text style={styles.submitButtonText}>
-                  {initialData ? 'Update Review' : 'Submit Review'}
-                </Text>
+            <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+              {serviceName && (
+                <Text style={styles.serviceNameText}>{serviceName}</Text>
               )}
-            </TouchableOpacity>
+
+              <Text style={styles.subtitle}>How was your experience?</Text>
+
+              <View style={styles.starSection}>
+                <Controller
+                  control={control}
+                  name="rating"
+                  render={({ field: { onChange, value } }) => (
+                    <View style={styles.starContainer}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <TouchableOpacity
+                          key={star}
+                          onPress={() => onChange(star)}
+                          style={styles.starButton}
+                        >
+                          <Ionicons
+                            name={star <= value ? 'star' : 'star-outline'}
+                            size={40}
+                            color={star <= value ? COLORS.warning : COLORS.border}
+                          />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                />
+                {errors.rating && <Text style={styles.errorText}>{errors.rating.message}</Text>}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Controller
+                  control={control}
+                  name="comment"
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[styles.input, errors.comment && styles.inputError]}
+                      placeholder="Share your feedback (required)..."
+                      placeholderTextColor={COLORS.textLight}
+                      multiline
+                      numberOfLines={4}
+                      value={value}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      textAlignVertical="top"
+                    />
+                  )}
+                />
+                {errors.comment && <Text style={styles.errorText}>{errors.comment.message}</Text>}
+              </View>
+
+              <View style={styles.imageSection}>
+                <Text style={styles.imageLabel}>Add Photos (Optional)</Text>
+                <View style={styles.imageList}>
+                  {images.map((uri, index) => (
+                    <View key={index} style={styles.imageWrapper}>
+                      <Image source={{ uri }} style={styles.previewImage} />
+                      <TouchableOpacity
+                        style={styles.removeImageBtn}
+                        onPress={() => removeImage(index)}
+                      >
+                        <Ionicons name="close-circle" size={20} color={COLORS.error} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  {images.length < 5 && (
+                    <TouchableOpacity style={styles.addImageBtn} onPress={pickImage}>
+                      <Ionicons name="camera-outline" size={28} color={COLORS.primary} />
+                      <Text style={styles.addImageText}>Add</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  isLoading && styles.disabledButton,
+                ]}
+                onPress={handleSubmit(onFormSubmit)}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <Text style={styles.submitButtonText}>
+                    {initialData ? 'Update Review' : 'Submit Review'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         )}
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

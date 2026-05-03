@@ -22,7 +22,11 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.servex.app"
+      "package": "com.servex.app",
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "androidStatusBar": {
+      "translucent": false
     },
     "web": {
       "favicon": "./assets/logo.png"
@@ -30,6 +34,11 @@
     "plugins": [
       "expo-secure-store",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bbe62b61-95ef-48be-a1ba-5227ee61f921"
+      }
+    }
   }
 }

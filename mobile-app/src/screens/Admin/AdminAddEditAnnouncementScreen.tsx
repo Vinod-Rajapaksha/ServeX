@@ -109,6 +109,7 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -144,6 +145,7 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="e.g. System Maintenance"
+                  placeholderTextColor={COLORS.textLight}
                 />
               )}
             />
@@ -161,6 +163,7 @@ const AdminAddEditAnnouncementScreen = ({ route, navigation }: any) => {
                   onChangeText={onChange}
                   value={value}
                   placeholder="Write your announcement message here..."
+                  placeholderTextColor={COLORS.textLight}
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
