@@ -224,7 +224,7 @@ const HomeScreen = ({ navigation }: any) => {
                         <Text style={styles.serviceTitle} numberOfLines={1}>{service.title}</Text>
                         <View style={styles.ratingRow}>
                           <Ionicons name="star" size={12} color="#FFC107" />
-                          <Text style={styles.ratingText}>{service.rating || 'New'}</Text>
+                          <Text style={styles.ratingText}>{service.rating ? Number(service.rating).toFixed(1) : 'New'}</Text>
                         </View>
                       </View>
                       <Text style={styles.providerName} numberOfLines={1}>{service.providerId?.name || 'Professional Provider'}</Text>

@@ -7,6 +7,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { COLORS } from './src/constants/theme';
 
 const queryClient = new QueryClient();
 
@@ -17,7 +18,7 @@ export default function App() {
         <Provider store={store}>
           <QueryClientProvider client={queryClient}>
             <AppNavigator />
-            <StatusBar style="auto" />
+            <StatusBar style="dark" backgroundColor={COLORS.background} translucent={false} />
             <Toast />
           </QueryClientProvider>
         </Provider>

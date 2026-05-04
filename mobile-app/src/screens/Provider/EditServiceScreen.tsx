@@ -108,6 +108,7 @@ const EditServiceScreen = ({ route, navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -145,6 +146,7 @@ const EditServiceScreen = ({ route, navigation }: any) => {
                   <TextInput
                     style={[styles.input, errors.title && styles.inputError]}
                     placeholder="e.g. Home Cleaning"
+                    placeholderTextColor={COLORS.textLight}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
@@ -192,6 +194,7 @@ const EditServiceScreen = ({ route, navigation }: any) => {
                     <TextInput
                       style={[styles.input, styles.priceInput, errors.price && styles.inputError]}
                       placeholder="0.00"
+                      placeholderTextColor={COLORS.textLight}
                       keyboardType="numeric"
                       onBlur={onBlur}
                       onChangeText={onChange}
@@ -232,6 +235,7 @@ const EditServiceScreen = ({ route, navigation }: any) => {
                   <TextInput
                     style={[styles.input, styles.textArea, errors.description && styles.inputError]}
                     placeholder="Describe your service..."
+                    placeholderTextColor={COLORS.textLight}
                     multiline
                     numberOfLines={4}
                     onBlur={onBlur}

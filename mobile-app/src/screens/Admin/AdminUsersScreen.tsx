@@ -111,6 +111,7 @@ const AdminUsersScreen = ({ navigation }: any) => {
         <TextInput
           style={styles.searchInput}
           placeholder="Search users..."
+          placeholderTextColor={COLORS.textLight}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />

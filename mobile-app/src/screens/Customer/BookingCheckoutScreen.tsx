@@ -125,6 +125,7 @@ const BookingCheckoutScreen = ({ route, navigation }: any) => {
                 <TextInput
                   style={[styles.input, styles.textArea, errors.notes && styles.errorInput]}
                   placeholder="What do you need the provider to do? (e.g. clean 2 rooms, fix leaky tap)"
+                  placeholderTextColor={COLORS.textLight}
                   multiline
                   numberOfLines={4}
                   value={value}
@@ -167,6 +168,7 @@ const BookingCheckoutScreen = ({ route, navigation }: any) => {
                 <TextInput
                   style={[styles.input, errors.address && styles.errorInput, useDefaultAddress && styles.disabledInput]}
                   placeholder="Enter the full address for service..."
+                  placeholderTextColor={COLORS.textLight}
                   value={value}
                   onChangeText={onChange}
                   editable={!useDefaultAddress}

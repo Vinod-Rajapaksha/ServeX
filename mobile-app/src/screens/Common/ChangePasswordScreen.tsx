@@ -65,6 +65,7 @@ const ChangePasswordScreen = ({ navigation }: any) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
+        enabled={Platform.OS === 'ios'}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -86,6 +87,7 @@ const ChangePasswordScreen = ({ navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   placeholder="Enter current password"
+                  placeholderTextColor={COLORS.textLight}
                   secureTextEntry
                 />
               )}
@@ -103,6 +105,7 @@ const ChangePasswordScreen = ({ navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   placeholder="Enter new password (min. 8 chars)"
+                  placeholderTextColor={COLORS.textLight}
                   secureTextEntry
                 />
               )}
@@ -120,6 +123,7 @@ const ChangePasswordScreen = ({ navigation }: any) => {
                   onBlur={onBlur}
                   onChangeText={onChange}
                   placeholder="Confirm new password"
+                  placeholderTextColor={COLORS.textLight}
                   secureTextEntry
                 />
               )}
